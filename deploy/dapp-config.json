@@ -1,0 +1,27 @@
+{
+	"httpUri": "https://api.devnet.solana.com",
+	"contracts": {},
+	"accounts": [
+		"7pJVeNumSEiQNFN4ViFLB5txs2AHbv9tGk7Dsd9v56EC"
+	],
+	"wallets": [
+		{
+			"publicKey": "7pJVeNumSEiQNFN4ViFLB5txs2AHbv9tGk7Dsd9v56EC",
+			"privateKey": "3Yq4pzafdQonws62jyruj1hpCzLHjbNuKs6mZ6y7zacVownQyXDvMAS3z5nVwqSyMezctQd7QAUjvcBUG7vUyUwA"
+		}
+	],
+	"programInfo": {
+		"programId": "E2D1E2nEx7NVBjCUd1JL6cjj4m58pHqAmTvSUamB6XQf",
+		"programAccounts": {
+			"payer": {
+				"publicKey": "61274UbBHDqbQ8uAEmPHkesCQ3szWLbKzN391K1Jf9pq",
+				"privateKey": "4nHBK2CDMNBiUhuHUrGHCVJTFYArze8zUP1Huf9pojpPqM6rRcfCyzpuFcuVoLx5BKTBytkxYhimyRiVejBsL53T",
+				"lamports": 1224292000
+			},
+			"message": {
+				"publicKey": "BWuwPQmq4fkfBtdejfpMbQHUHPidN4afSebFWd9RY4yV",
+				"lamports": 1670400
+			}
+		}
+	}
+}
