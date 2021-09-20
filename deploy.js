@@ -31,21 +31,35 @@ const payerKeypairFile = path.resolve(`${__dirname}${SLASH}${keyfileName}`)
     let config = networks.development.config
     let solana = new Solana(config)
 
-    spawn.sync("solana-keygen", ["new", "--outfile", `${keyfileName}`], {
-        stdio: "inherit",
-    })
+    let method
 
-    let payerKeypair = await solana.createAccount({})
-    console.log(`\n\n\⚙️ Created keypair.\n`)
-    console.log(`\n\n\⚙️ Saving keypair. ${payerKeypairFile}\n`)
-    fs.writeFileSync(
-        payerKeypairFile,
-        `[${Buffer.from(payerKeypair.secretKey.toString())}]`
-    )
+    if (!fs.existsSync(payerKeypairFile)) {
+        console.log(`\n\n\ Note: Generating key and using Anchor deploy \n\n`)
+
+        let payerKeypair = await solana.createAccount({})
+        console.log(`\n\n\⚙️ Created keypair.\n`)
+        console.log(`\n\n\⚙️ Saving keypair. ${payerKeypairFile}\n`)
+        fs.writeFileSync(
+            payerKeypairFile,
+            `[${Buffer.from(payerKeypair.secretKey.toString())}]`
+        )
+
+        method = ["deploy"]
+    } else {
+        // already have a keypair and programId, upgrade it instead of deploying new one
+        console.log(`\n\n\⚙️ Upgrading program.\n`)
+        method = [
+            "upgrade",
+            "target/deploy/solblog.so",
+            "--program-id",
+            "3v1Y5wFi4fn3wij7W6hJztdYoLgVqR9a4n8ARpaGNqW9",
+        ]
+    }
+
     spawn.sync(
         "anchor",
         [
-            "deploy",
+            ...method,
             "--provider.cluster",
             "Devnet",
             "--provider.wallet",
@@ -54,5 +68,5 @@ const payerKeypairFile = path.resolve(`${__dirname}${SLASH}${keyfileName}`)
         { stdio: "inherit" }
     )
 
-    console.log(`\n\n\⚙️  Deployed program to blockchain.\n\n`)
+    console.log(`\n\n\⚙️ ${method[0]}'d program to blockchain.\n\n`)
 })()

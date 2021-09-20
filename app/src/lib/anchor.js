@@ -3,8 +3,10 @@ import * as anchor from '@project-serum/anchor';
 // Read the generated IDL
 import idl from '../../../target/idl/solblog.json';
 
-import solConfigFile from '../../../deploy/solana-config.json';
 import Solana from '../../../deploy/solana.js';
+
+// we can do this because svektekit/vite allows us to import json file as es modules :)
+import solConfigFile from '../../../deploy/solana-config.json';
 import keyfile from '../../../deploy/payer-keypair.json';
 
 let config = solConfigFile.development.config;
