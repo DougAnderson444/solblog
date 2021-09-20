@@ -3,10 +3,10 @@
 </script>
 
 <script>
-	import { initialize } from '$lib/anchor.js';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
+		const { initialize } = await import('$lib/anchor.js');
 		await initialize();
 	});
 </script>
@@ -30,8 +30,6 @@
 	<h2>
 		try editing <strong>src/routes/index.svelte</strong>
 	</h2>
-
-	<Counter />
 </section>
 
 <style>

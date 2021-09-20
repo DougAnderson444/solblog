@@ -1,8 +1,22 @@
 <script>
 	import Header from '$lib/header/Header.svelte';
 	import '../app.css';
+
+	import { onMount } from 'svelte';
+
+	onMount(async () => {
+		// setup some globals
+		import('buffer').then((Buffer) => {
+			global.Buffer = Buffer.Buffer;
+		});
+	});
 </script>
 
+<svelte:head>
+	<script>
+		global = globalThis; // for solana web3 repo
+	</script>
+</svelte:head>
 <Header />
 
 <main>

@@ -172,7 +172,7 @@ Then we'll create an Anchor helper script:
 // import the Anchor library
 import * as anchor from '@project-serum/anchor';
 // Read the generated IDL
-import idl from '../target/idl/basic_1.json';
+import idl from '../target/idl/solblog.json';
 
 // Configure the local cluster on nodejs
 anchor.setProvider(anchor.Provider.local());
@@ -215,15 +215,84 @@ To keep things simple, I will just paste this in the index of our front-end, in 
 	})
 ```
 
+Since Anchor uses borsh, there is a small hack we need to add in order to get the Global varibale to work. In Svelte, if we paste something in our page layouts, it'll apply to all layouts, so we'll add our hack here to make things work with the imported Anchor library:
+
+```js
+	import { onMount } from 'svelte';
+
+	import Header from '$lib/header/Header.svelte';
+	import '../app.css';
+
+	onMount(async () => {
+		// setup some globals
+		import('buffer').then((Buffer) => {
+			global.Buffer = Buffer.Buffer;
+		});
+	});
+```
+
+Before we can use the Anchor RPC we need to set the provider
+
+As we can see from [the code](https://github.com/project-serum/anchor/blob/master/ts/src/provider.ts#L20) we need 3 things to configure a provider:
+
+1. A Solana connection, which we can get from [web3.js](https://solana-labs.github.io/solana-web3.js/)
+2. A wallet, which we can get from anchor.Wallet(keypair) by passing in an airdrop funded keypair
+3. Confirm options, which are, well, optional.
+
+We can re-use some of the code setup for the deployment of our program code, which also used web3.js and the connection.
+
+Our client code gets a bit beefier as we add the above features:
+
+```js
+// re-use the utilities from our deploy setup
+import solConfigFile from "../../../deploy/solana-config.json";
+import Solana from "../../../deploy/solana.js"
+import keyfile from "../../../deploy/payer-keypair.json"
+
+// get a Solana connection from our Devnet configuration
+const networks = JSON.parse(fs.readFileSync(solConfigFile, 'utf8'));
+let config = networks.development.config;
+let solana = new Solana(config);
+let connection = solana.connection
+
+// convert the keyfile.json to a Keypair object
+let keypair = Solana.getSigningAccount(keyfile)
+const wallet = new anchor.Wallet(keypair)
+
+```
+
+Now we can use these factor to [generate an Anchor provider](https://github.com/project-serum/anchor/blob/master/ts/src/provider.ts#L20):
+
+```js
+    const opts = {
+        preflightCommitment: "recent",
+        commitment: "recent",
+    };
+
+    const provider = new Provider(connection, wallet, opts);
+```
+
+## Deploy to Devnet
+
 To deploy the anchor program on devnet, we do need a small script to setup some keys, fund via airdrop, then use anchor deploy to deploy to the devnet.
 
+This deploy code is saved to `./deploy.js` with a shortcut script in `package.json` which is convenienlty run by:
 
+`npm run deploy`
 
-simply do:
+The deploy script creates a new keypair to pay for the deployment for you, funds it with 10 SOL, and deploys it to the Devnet. 
+
+When you run this code, you can see that Anchor has filled in our basic starting point with all the necessary glue to make a Solana program work, and now it's 149kb in size and costs about 2 SOL to deploy.
 
 ```
-anchor deploy --
+|
+├── target
+|   └── deploy
+|           solblog.so   149kb
 ```
+
+Now that the program is deployed to Solana Devnet, and we've place the client code inside our Svelte App, we can do a test run to make sure we've got everything right.
+
 
 ## Basic Blog
 
