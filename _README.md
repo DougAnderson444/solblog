@@ -272,6 +272,8 @@ Now we can use these factor to [generate an Anchor provider](https://github.com/
     const provider = new Provider(connection, wallet, opts);
 ```
 
+This is nice because when we switch our provider to "mainnet" for production, all of our connection code is already setup and ready to go. 
+
 ## Deploy to Devnet
 
 To deploy the anchor program on devnet, we do need a small script to setup some keys, fund via airdrop, then use anchor deploy to deploy to the devnet.
@@ -293,6 +295,9 @@ When you run this code, you can see that Anchor has filled in our basic starting
 
 Now that the program is deployed to Solana Devnet, and we've place the client code inside our Svelte App, we can do a test run to make sure we've got everything right.
 
+After entering `npm run dev` we can see of Initialization function executed in the console without any errors, so our client and program are talking! Now we can make our program more interesting and modify our client accordingly, knowing comfortably that everythig works at this point.
+
+We've seen `anchor deploy`, when we want to update an existing deployed program, our `deploy.js` script will call `anchor upgrade` instead which should save us some deploy fees.
 
 ## Basic Blog
 
@@ -300,5 +305,67 @@ We are going to build a simple blog using Solana. Data in Solana is stored in ac
 
 So let's start by having Anchor make an account for us to save the blog data in, and then post a transaction to make out first post!
 
-## Creating an account
+## Relating data to an account address
+
+In our blog design we have one data storage account, and this account address that will hold the most recent blog post. To get previous transactions for this address, we need to first look up all signature for this address backwards in time. Luckily for us, the Solana javascript SDK has a feature for this
+
+```ts
+connection.getSignaturesForAddress(address: PublicKey, options?: SignaturesForAddressOptions, commitment?: Finality): Promise<ConfirmedSignatureInfo[]>)
+```
+
+Once we have the signatures, we can get the transaction details using a similar:
+
+```ts
+getTransaction(signature: string, opts?: { commitment?: Finality }): Promise<null | TransactionResponse>
+```
+
+From the transaction, we can get
+
+BUT, there is an SPL (Solana Programming Library --  preprogrammed and deployed Programs we can use in our own program) called "memo program" that we can use to store 32 to 566 bytes of data associated with the transaction. To make a Twitter clone, we only need 140 bytes to store our 140 characters, so this could work for us! Plus gives us room to cover emojiis ;)
+
+If we check out [the docs](https://solana-labs.github.io/solana-web3.js/modules.html#ConfirmedSignatureInfo), we can get memo details from `ConfirmedSignatureInfo` type of [a connection](https://github.com/solana-labs/solana-web3.js/blob/4883fed/src/connection.ts#L1949):
+
+```ts
+ConfirmedSignatureInfo: { blockTime?: number | null; err: TransactionError | null; memo: string | null; signature: string; slot: number }
+```
+
+So all we need to do is use 
+
+1. The SPL Memo program [via [Cross-Program Invocations](https://docs.solana.com/developing/programming-model/calling-between-programs#cross-program-invocations), which we'll cover shortly], and 
+2. Get the transaction for of each signature related to the account.
+3. Read back the memo for each transaction 
+
+So let's get coding!
+
+## Invoking a CPI
+
+We're going to save our simple blog posts using the [solana programming library memo program](https://spl.solana.com/memo). The program is saved to this address:
+
+```
+[MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr](https://explorer.solana.com/address/MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr) 
+```
+
+Taking a look at the Memo rust code tells us how we should go about interacting with it:
+
+```rs
+pub fn process_instruction(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo], // <-------- Our signer account goes here
+    input: &[u8],  // <------------------- Our memo goes here
+) -> ProgramResult {
+
+	// ...snip
+
+	let memo = from_utf8(input).map_err(|err| { // <---- Our memo checked here
+		// ...snip
+    })?;
+    msg!("Memo (len {}): {:?}", memo.len(), memo);   // <----- Our memo saved here
+
+	// ...snip
+
+```
+
+So we need a 1) CPI and a 2) Signing account to hand to the Memo program.
+
+We need to change our current library code from `initialize` to something more blog-like, such as `post` or `post_memo` or `make_post`. It can be whatever we like, let's go with `make_post` as that's pretty clear (verb and a noun)
 
