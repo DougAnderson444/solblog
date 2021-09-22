@@ -137,6 +137,13 @@ Take your key and replace that default `declare_id` placeholder:
 declare_id!("SoMeKeyThatIsUniqueTOmyPROGRAM");
 ```
 
+We will also need to include this same Program ID in the client side next, in our `app\src\lib\anchor.js` 
+
+```js
+// programId is the program public key, SoMeKeyThatIsUniqueTOmyPROGRAM
+const program = new anchor.Program(idl, programId, provider);
+```
+
 Now our project folder is all set up, we can start making the program do something useful!
 
 ## Client Setup
@@ -299,6 +306,26 @@ After entering `npm run dev` we can see of Initialization function executed in t
 
 We've seen `anchor deploy`, when we want to update an existing deployed program, our `deploy.js` script will call `anchor upgrade` instead which should save us some deploy fees.
 
+## Creating Account Address Keypairs
+
+There are a number of keypairs that are used throughout this whole process:
+
+1. ProgramId (saved in ./target/deploy/solblog-keypair.json)
+2. Program's authority: Pays to deploy and upgrade the program
+3. Transaction fee payers (can't be the same as the program authority?)
+4. The blog posting authority (could be the same as payer)
+5. The Blog Account (key is used as address only)
+
+ProgramId is created during the first `anchor build` 
+
+Program upgrade authority keys are creates and funded during the first deploy call `npm run deploy` in `deploy.js`
+
+While we are there we can create a 
+
+## Signers
+
+Any keypair in our program.provider.wallet is already a signer and doesn't have to be explicitly added as a [signer] in our RPC method call.
+
 ## Basic Blog
 
 We are going to build a simple blog using Solana. Data in Solana is stored in accounts, and each account has a list of all the transactions made on that account.
@@ -310,18 +337,28 @@ So let's start by having Anchor make an account for us to save the blog data in,
 In our blog design we have one data storage account, and this account address that will hold the most recent blog post. To get previous transactions for this address, we need to first look up all signature for this address backwards in time. Luckily for us, the Solana javascript SDK has a feature for this
 
 ```ts
+// https://solana-labs.github.io/solana-web3.js/classes/Connection.html#getSignaturesForAddress
+
 connection.getSignaturesForAddress(address: PublicKey, options?: SignaturesForAddressOptions, commitment?: Finality): Promise<ConfirmedSignatureInfo[]>)
 ```
 
 Once we have the signatures, we can get the transaction details using a similar:
 
+Taking a look at the [ConfirmedSignatureInfo[]](https://solana-labs.github.io/solana-web3.js/modules.html#ConfirmedSignatureInfo) array, we can see the memo is in there
+
 ```ts
-getTransaction(signature: string, opts?: { commitment?: Finality }): Promise<null | TransactionResponse>
+let firstMemo = confirmedSignatureInfo[0].memo
+```
+
+```ts
+// https://solana-labs.github.io/solana-web3.js/classes/Connection.html#getTransaction
+
+connection.getTransaction(signature: string, opts?: { commitment?: Finality }): Promise<null | TransactionResponse>
 ```
 
 From the transaction, we can get
 
-BUT, there is an SPL (Solana Programming Library --  preprogrammed and deployed Programs we can use in our own program) called "memo program" that we can use to store 32 to 566 bytes of data associated with the transaction. To make a Twitter clone, we only need 140 bytes to store our 140 characters, so this could work for us! Plus gives us room to cover emojiis ;)
+BUT, there is an SPL (Solana Programming Library --  preprogrammed and deployed Programs we can use in our own program) called "memo program" that we can use to store 32 to 566 bytes of data associated with the transaction. To make a Twitter clone, we only need 140 bytes to store our 140 characters, so this could work for us! Plus gives us room to cover a few emojiis ;)
 
 If we check out [the docs](https://solana-labs.github.io/solana-web3.js/modules.html#ConfirmedSignatureInfo), we can get memo details from `ConfirmedSignatureInfo` type of [a connection](https://github.com/solana-labs/solana-web3.js/blob/4883fed/src/connection.ts#L1949):
 
@@ -333,13 +370,13 @@ So all we need to do is use
 
 1. The SPL Memo program [via [Cross-Program Invocations](https://docs.solana.com/developing/programming-model/calling-between-programs#cross-program-invocations), which we'll cover shortly], and 
 2. Get the transaction for of each signature related to the account.
-3. Read back the memo for each transaction 
+3. Read back the memo for each transaction using our Solana connection.
 
 So let's get coding!
 
 ## Invoking a CPI
 
-We're going to save our simple blog posts using the [solana programming library memo program](https://spl.solana.com/memo). The program is saved to this address:
+We're going to save our simple blog posts using the [solana programming library memo program](https://spl.solana.com/memo). The memo program is saved to this address:
 
 ```
 [MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr](https://explorer.solana.com/address/MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr) 
@@ -368,4 +405,179 @@ pub fn process_instruction(
 So we need a 1) CPI and a 2) Signing account to hand to the Memo program.
 
 We need to change our current library code from `initialize` to something more blog-like, such as `post` or `post_memo` or `make_post`. It can be whatever we like, let's go with `make_post` as that's pretty clear (verb and a noun)
+
+We also need to increase the size of our account storage to store the authority publicKey (32 bytes) and our post (566 bytes)
+
+All accounts need at least [8 bytes](https://docs.rs/anchor-lang/0.16.1/anchor_lang/attr.state.html) for the account [Discriminator](https://docs.rs/anchor-lang/0.16.1/anchor_lang/trait.Discriminator.html). So add 8 bytes to however much space you want to use i your account. 
+
+```rs
+#[account(
+	//...
+
+	space = 8 // 8 bytes for the account discriminator prepended
+	+ 32 // authority: Pubkey needs 32 bytes
+	+ 8 // data: u64 needs 8 bytes
+
+	//...
+
+```
+
+Before we get into calling the Memo program via CPI, let's set up our program to simply update my_account with the latest blog post, we can check to make sure everything is working with our client code, and then we'll improve it further by adding the trail of memos via CPI.
+
+Once we make these changes to our account, after another `anchor build` we can see the new IDL contains our new function!
+
+```
+|
+├── target
+|   └── idl
+|           solblog.json   <--- now has make_post
+```
+
+Since our IDL is updated, we can now use `rpc.makePost(data)` to call our program and save the data to the account.
+
+Let's give that a shot!
+
+Because we've added actual account data to our Rust code, we need to now pass in that Account data from our javascript client too. We need to use the same account info (keypair and whatnot) in both functions.
+
+```js
+// app\src\lib\anchor.js
+
+export async function initialize() {
+	// Execute the RPC.
+	await program.rpc.initialize({
+		accounts: {
+			blogPostAccount: provider.wallet.publicKey, // we're re-using our wallet keys for simplicity, but you can pass in any keypair you like
+			systemProgram: SystemProgram.programId // just for Anchor reference
+		},
+		signers: [payerKeypair] // this is the authority
+	});
+	console.log('Successfully intialized');
+}
+
+export async function makePost(number) {
+	// Execute the RPC.
+	await program.rpc.makePost(new anchor.BN(number), {
+		accounts: {
+			blogPostAccount: provider.wallet.publicKey, // must be the same keypair as the one who initialized this account
+		},
+		signers: [payerKeypair]
+	});
+	console.log('Successfully posted');
+}
+```
+
+and call it from anywhere within our app
+
+```js
+// app\src\routes\index.svelte
+await anchor.makePost(123)
+
+```
+
+Run the svelte app to see if you get any errors in the console.log
+
+-------
+
+We are going to add the Cross-program invokation (CPI) to our Anchor rust app in three steps
+
+1. Add the [memo crate](https://crates.io/crates/spl-memo) to the program's Rust `Cargo.toml` and add the use statement in the header code block of `lib.rs`:
+
+	```md
+	// programs/solblog/Cargo.toml
+
+	[dependencies]
+	spl-memo = "3.0.1"
+	```
+
+	```rs
+	// lib.rs
+	
+	use spl-memo
+	```
+
+2. Add `post_memo` to the first code block, `pub mod solblog {...`
+
+    ```rs
+	// lib.rs
+
+	pub fn post_memo(ctx: Context<MakePost>,
+    new_memo: String
+    ) -> ProgramResult {
+		// ... we will add CPI code in here
+        Ok(())
+    }
+	```
+
+3. Add corresponding `PostMemo` struct to the second block 
+
+	```rs
+	// lib.rs
+
+	#[derive(Accounts)]
+	pub struct PostMemo<'info> {
+
+	}
+	```
+
+Now that we have the basic Anchor structures and macros in place, we can fill them up with CPI code. 
+
+First in order to refer to both our BlogAccount and the Memo Program in our function in the first block, we need to have the Anchor macro create references for us in our struct for the function:
+
+
+	```rust
+	// lib.rs
+
+	#[derive(Accounts)]
+	pub struct PostMemo<'info> {
+		#[account(mut)]
+		pub blog_account: Account<'info, Data>,
+	    pub memo_program: Program<'info, Puppet>,
+	}
+	```
+ 
+ Now we can use these reference in our `post_memo` function
+
+
+# Blog History
+
+But what happens when we update our latest blog post? The BlogAccount get updated to a new value... but what happens to all the old values?
+
+They are still there, in a couple of places. First of all, since we passed in our blog posts as instruction data, it's saved there.
+
+Instruction data is a bit more complicated to parse out, since not only does it have our blog post in there, but it's got all the other Solana instructions too. Luckily for us, there's an easy way to get our text.
+
+Since we sent our posts out as msg!() macros, they are also saved to the log messages.
+
+We can get these log messages from the transaction details, which we get by looking up the signature.
+
+```ts
+	let transaction = await connection.getParsedConfirmedTransaction(
+			confirmedSignatureInfo[0].signature
+		);
+	const logMessages = transaction?.meta?.logMessages;
+	const timestamp = transaction?.blockTime;
+```
+
+From there, anything with "Program log: " in front of it is the output from our msg!() macro -- in other words, out blog post!
+
+We can get the date and time from the blockTime.
+
+Wiring this all up into our Svelte app and we have a blog!
+
+The neat thing about Solana is that you can use Programs that are already deployed for your own purposes. So if you wanted to use this program to make your own blog posts, you can! It costs you NOTHING to save the program, all you have to do is pay the low Solana rent-exemption for the Account, and an even lower transaction fee.... and you've got yourself a fast, cheap, censorship resistant blog!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

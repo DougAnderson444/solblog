@@ -5,9 +5,12 @@
 <script>
 	import { onMount } from 'svelte';
 
+	let anchor;
 	onMount(async () => {
-		const { initialize } = await import('$lib/anchor.js');
-		await initialize();
+		anchor = await import('$lib/anchor.js');
+		await anchor.initialize();
+
+		await anchor.makePost('a new blog post 💖 at ' + new Date(Date.now()).toLocaleString('en-GB'));
 	});
 </script>
 

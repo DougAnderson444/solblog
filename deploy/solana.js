@@ -15,7 +15,7 @@ import bs58 from "bs58"
 export default class Solana {
     constructor(config) {
         this.serviceUri = config.httpUri
-        this.connection = new Connection(this.serviceUri, "singleGossip")
+        this.connection = new Connection(this.serviceUri, "confirmed")
         console.log("\n\nConnected to", this.serviceUri)
     }
 
@@ -67,9 +67,9 @@ export default class Solana {
      *                  entropy:  Secret key used to generate account keypair Buffer | Uint8Array | Array<number>
      * @returns Keypair that was created
      */
-    async createAccount(options) {
+    async createAccount(options = { lamports: false, entropy: false }) {
         let self = this
-        let lamports = options.lamports || LAMPORTS_PER_SOL * 12
+        let lamports = options.lamports || LAMPORTS_PER_SOL * 4
         let account = options.entropy
             ? new Keypair(options.entropy)
             : new Keypair()
@@ -77,12 +77,16 @@ export default class Solana {
         let retries = 10
 
         console.log(
-            `🤖 Keypair ${account.publicKey} created. Requesting Airdrop...`
+            `*** Keypair ${
+                account.publicKey
+            } created. Requesting Airdrop... ${lamports}lamports / ${
+                lamports / LAMPORTS_PER_SOL
+            }SOL`
         )
         await self.airDrop(Solana.getPublicKey(account.publicKey), lamports)
 
         for (;;) {
-            await Solana._sleep(500)
+            await Solana._sleep(900)
             let balance = await self.getAccountBalance(
                 Solana.getPublicKey(account.publicKey)
             )
