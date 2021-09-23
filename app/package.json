@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
@@ -12,7 +12,13 @@
     "@sveltejs/kit": "next",
     "prettier": "^2.4.1",
     "prettier-plugin-svelte": "^2.4.0",
-    "svelte": "^3.34.0"
+    "svelte": "^3.34.0",
+    "rehype-stringify": "^9.0.2",
+    "remark-parse": "^10.0.0",
+    "remark-rehype": "^9.1.0",
+    "to-vfile": "^7.2.2",
+    "unified": "^10.1.0",
+    "marked": "^3.0.4"
   },
   "type": "module",
   "dependencies": {
