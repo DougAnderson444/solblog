@@ -1,0 +1,92 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="1433"
+	height="637"
+	overflow="hidden"
+	><defs><path id="reuse-0" d="M489 1642h283v223H489z" /></defs><defs
+		><clipPath id="a"><path d="M414 1477h1433v637H414z" /></clipPath><clipPath id="b"
+			><use xlink:href="#reuse-0" /></clipPath
+		><clipPath id="c"><use xlink:href="#reuse-0" /></clipPath><clipPath id="d"
+			><use xlink:href="#reuse-0" /></clipPath
+		><linearGradient
+			id="e"
+			x1="255.9"
+			x2="100.1"
+			y1="-26.6"
+			y2="271.8"
+			gradientUnits="userSpaceOnUse"
+			spreadMethod="pad"
+			><stop offset="0" stop-color="#00FFA3" /><stop
+				offset="1"
+				stop-color="#DC1FFF"
+			/></linearGradient
+		><linearGradient
+			id="f"
+			x1="187.8"
+			x2="32"
+			y1="-62.1"
+			y2="236.2"
+			gradientUnits="userSpaceOnUse"
+			spreadMethod="pad"
+			><stop offset="0" stop-color="#00FFA3" /><stop
+				offset="1"
+				stop-color="#DC1FFF"
+			/></linearGradient
+		><linearGradient
+			id="g"
+			x1="221.6"
+			x2="65.9"
+			y1="-44.5"
+			y2="253.9"
+			gradientUnits="userSpaceOnUse"
+			spreadMethod="pad"
+			><stop offset="0" stop-color="#00FFA3" /><stop
+				offset="1"
+				stop-color="#DC1FFF"
+			/></linearGradient
+		></defs
+	><g clip-path="url(#a)" transform="translate(-414 -1477)"
+		><text
+			fill="#404040"
+			font-family="RussellSquare,RussellSquare_MSFontService,sans-serif"
+			font-size="303"
+			font-weight="700"
+			transform="translate(778 1864)"
+			>olBlog<tspan
+				x="-279"
+				y="115"
+				font-family="Courier New,Courier New_MSFontService,sans-serif"
+				font-size="73">Quick &amp; Easy On</tspan
+			><tspan
+				x="382"
+				y="115"
+				font-family="Courier New,Courier New_MSFontService,sans-serif"
+				font-size="73">-</tspan
+			><tspan
+				x="426"
+				y="115"
+				font-family="Courier New,Courier New_MSFontService,sans-serif"
+				font-size="73">Chain Posts</tspan
+			></text
+		><g clip-path="url(#b)"
+			><g clip-path="url(#c)"
+				><g clip-path="url(#d)"
+					><path
+						fill="url(#e)"
+						d="m46 169 6-3h225c5 0 7 5 4 8l-45 44-6 3H5c-5 0-7-5-4-8l45-44Z"
+						transform="matrix(1 0 0 1.00423 489 1642)"
+					/><path
+						fill="url(#f)"
+						d="m46 3 6-3h225c5 0 7 5 4 8l-45 44-6 3H5c-5 0-7-5-4-8L46 3Z"
+						transform="matrix(1 0 0 1.00423 489 1642)"
+					/><path
+						fill="url(#g)"
+						d="m236 85-6-3H5c-5 0-7 5-4 8l45 45 6 2h225c5 0 7-4 4-7l-45-45Z"
+						transform="matrix(1 0 0 1.00423 489 1642)"
+					/></g
+				></g
+			></g
+		></g
+	></svg
+>

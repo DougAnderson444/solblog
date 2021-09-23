@@ -15,6 +15,7 @@ const { SystemProgram } = anchor.web3; // Added to initialize account
 let config = solConfigFile.development.config;
 let solana = new Solana(config);
 let connection = solana.connection;
+let utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
 
 // convert the keyfile.json to a Keypair object
 let payerKeypair = Solana.getSigningAccount(new Uint8Array(keyfile));
@@ -42,7 +43,13 @@ const program = new anchor.Program(idl, programId, provider);
 
 let blogAccount = anchor.web3.Keypair.generate(); // this will be out account publickey
 
-export async function initialize() {
+export async function initialize(blogAccount) {
+	// check to see if this account has been initialized before
+	const account = await program.account.blogAccount.fetch(blogAccount.publicKey);
+	console.log(`pre-init account:`, { account });
+
+	if (account.authority === blogAccount.publicKey) return;
+
 	// Execute the RPC.
 	const tx = await program.rpc.initialize(
 		// provider.wallet.payer.publicKey,
@@ -83,14 +90,7 @@ export async function makePost(post) {
 	);
 	// Fetch the newly created account from the cluster.
 	await Solana._sleep(1200);
-	const account = await program.account.blogAccount.fetch(blogAccount.publicKey);
-	console.log(`Account info:`, { account });
-	let fetchedPK = new anchor.web3.PublicKey(account.authority);
-	console.log(
-		`Account authority:`,
-		fetchedPK.toBase58(),
-		fetchedPK.toString() === provider.wallet.publicKey.toString()
-	);
+
 	console.log(
 		`Account latest_post: \n`,
 		account.latestPost,
@@ -117,3 +117,38 @@ export async function makePost(post) {
 	const logMessages = transaction?.meta?.logMessages;
 	console.log({ logMessages });
 }
+
+export const getLatestPost = async (blogAccount) => {
+	const account = await program.account.blogAccount.fetch(blogAccount.publicKey);
+	console.log(`get account latest post:`, { account });
+	return utf8decoder.decode(account.latestPost);
+};
+
+export const getLastPosts = async (blogid, limit = 100) => {
+	const accountpublicKey = new anchor.web3.PublicKey(blogid);
+	const confirmedSignatureInfo = await connection.getSignaturesForAddress(accountpublicKey, {
+		limit
+	});
+	// confirmedSignatureInfo.signature = is just a string
+	// TransactionSignature: Transaction signature as base-58 encoded string
+
+	const transactionSignatures = confirmedSignatureInfo.map((sigInfo) => sigInfo.signature);
+
+	const parsedConfirmedTransactions = await connection.getParsedConfirmedTransactions(
+		transactionSignatures
+	);
+
+	const filtered = parsedConfirmedTransactions.filter((tx) =>
+		tx.meta.logMessages.some((msg) => msg.startsWith('Program log:'))
+	);
+
+	const postDetails = filtered.map((tx) => {
+		console.log({ tx }, tx.transaction.signatures);
+
+		const timestamp = new Date(tx.blockTime * 1000).toString();
+		const content = tx.meta.logMessages.filter((msg) => msg.startsWith('Program log:'));
+		return { content, timestamp, signature: tx.transaction.signatures[0] };
+	});
+
+	return postDetails;
+};

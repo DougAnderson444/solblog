@@ -36,8 +36,8 @@
 	</p>
 
 	<p>
-		The <a href="/todos">TODOs</a> page illustrates SvelteKit's data loading and form handling. Try using
-		it with JavaScript disabled!
+		The <a href="/blog">Blog</a> page illustrates Solana's data saving and loading handling. Try using
+		it with your own BlogAccount!
 	</p>
 </div>
 

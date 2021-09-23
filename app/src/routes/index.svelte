@@ -3,15 +3,7 @@
 </script>
 
 <script>
-	import { onMount } from 'svelte';
-
-	let anchor;
-	onMount(async () => {
-		anchor = await import('$lib/anchor.js');
-		await anchor.initialize();
-
-		await anchor.makePost('a new blog post 💖 at ' + new Date(Date.now()).toLocaleString('en-GB'));
-	});
+	import blogo from './solblog.svg';
 </script>
 
 <svelte:head>
@@ -22,17 +14,12 @@
 	<h1>
 		<div class="welcome">
 			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp" />
-				<img src="svelte-welcome.png" alt="Welcome" />
+				<a sveltekit:prefetch href="/blog">
+					<img src={blogo} alt="SolBlog Logo Link" />
+				</a>
 			</picture>
 		</div>
-
-		to your new<br />SvelteKit app
 	</h1>
-
-	<h2>
-		try editing <strong>src/routes/index.svelte</strong>
-	</h2>
 </section>
 
 <style>
@@ -49,17 +36,15 @@
 	}
 
 	.welcome {
-		position: relative;
 		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
+		height: auto;
 	}
 
 	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
+		width: 60%;
+		max-width: 350px;
+		margin: 0.5em;
+		height: auto;
+		display: inline-block;
 	}
 </style>
