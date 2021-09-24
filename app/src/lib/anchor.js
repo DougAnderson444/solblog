@@ -21,8 +21,6 @@ let utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
 let payerKeypair = Solana.getSigningAccount(new Uint8Array(keyfile));
 const wallet = new anchor.Wallet(payerKeypair);
 
-console.log('payerKeypair Base58', payerKeypair.publicKey.toBase58());
-
 const opts = {
 	preflightCommitment: 'recent',
 	commitment: 'recent'
@@ -143,10 +141,9 @@ export const getLastPosts = async (blogid, limit = 100) => {
 	);
 
 	const postDetails = filtered.map((tx) => {
-		console.log({ tx }, tx.transaction.signatures);
-
 		const timestamp = new Date(tx.blockTime * 1000).toString();
-		const content = tx.meta.logMessages.filter((msg) => msg.startsWith('Program log:'));
+		const pgmLogs = tx.meta.logMessages.filter((msg) => msg.startsWith('Program log: '));
+		const content = pgmLogs.map((log) => log.substring('Program log: '.length));
 		return { content, timestamp, signature: tx.transaction.signatures[0] };
 	});
 

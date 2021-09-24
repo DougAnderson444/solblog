@@ -1,12 +1,12 @@
 <script>
 	import { page } from '$app/stores';
-	import logo from './svelte-logo.svg';
+	import logo from './sblogo.svg';
 </script>
 
 <header>
 	<div class="corner">
-		<a href="https://kit.svelte.dev">
-			<img src={logo} alt="SvelteKit" />
+		<a href="/">
+			<img src={logo} alt="SolBlog" />
 		</a>
 	</div>
 
@@ -38,8 +38,8 @@
 	}
 
 	.corner {
-		width: 3em;
-		height: 3em;
+		width: 10em;
+		height: 4em;
 	}
 
 	.corner a {
@@ -51,8 +51,8 @@
 	}
 
 	.corner img {
-		width: 2em;
-		height: 2em;
+		width: 8em;
+		height: 4em;
 		object-fit: contain;
 	}
 

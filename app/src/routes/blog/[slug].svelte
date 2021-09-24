@@ -3,7 +3,7 @@
 
 	export async function load({ page, fetch }) {
 		const slug = page.params.slug;
-		let response = await fetch(`${slug}.json`);
+		let response = await fetch(`${slug}.json`); // uses [slug].json.js to fetch
 		let posts = await response.json();
 		return {
 			props: { posts, blogId: slug }
@@ -15,7 +15,7 @@
 	import { onMount } from 'svelte';
 	import { scale } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
-
+	import MarkdownEditor from '$lib/MarkdownEditor.svelte';
 	import marked from 'marked';
 	// post will have metadata and content
 	export let posts;
@@ -27,6 +27,7 @@
 	let content;
 
 	onMount(async () => {
+		console.log({ posts });
 		anchor = await import('$lib/anchor.js');
 
 		initialize = async () => {
@@ -59,25 +60,10 @@
 	<title>Solana Blog</title>
 </svelte:head>
 
-<!--show the posts html with @html-->
-{#if posts}
-	Posts<br />
-	{#each posts as post}
-		{post.timestamp}<br />
-		{@html post.content[1]}<br />
-	{/each}
-{:else}
-	No posts?
-{/if}
-
-{#if content}
-	{@html content}
-{:else}No content
-{/if}
-
 <div class="blog">
 	<h1>Solana Blog</h1>
-
+	<h2>{blogId}</h2>
+	<MarkdownEditor />
 	<form
 		class="new"
 		action="/blog.json"
@@ -97,7 +83,6 @@
 			placeholder="+ tap to blog on-chain with Solana"
 		/>
 	</form>
-
 	{#each posts as post (post.signature)}
 		<div
 			class="post"
@@ -127,22 +112,13 @@
 					result: patch
 				}}
 			>
-				<input aria-label="Edit post" type="text" name="post" value={post.post} />
+				{@html post.content[post.content.length - 1]}
 				<button class="save" aria-label="Save post" />
 			</form>
 
-			<form
-				action="/blog/{post.signature}.json?_method=delete"
-				method="post"
-				use:enhance={{
-					pending: () => (post.pending_delete = true),
-					result: () => {
-						blog = blog.filter((t) => t.signature !== post.signature);
-					}
-				}}
-			>
-				<button class="delete" aria-label="Delete post" disabled={post.pending_delete} />
-			</form>
+			<a href="https://explorer.solana.com/tx/{post.signature}?cluster=devnet" target="_blank">
+				<button class="new-window" aria-label="Open in explorer" />
+			</a>
 		</div>
 	{/each}
 </div>
@@ -232,13 +208,12 @@
 		background-image: url("data:image/svg+xml,%3Csvg width='22' height='16' viewBox='0 0 22 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20.5 1.5L7.4375 14.5L1.5 8.5909' stroke='%23676778' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	}
 
-	.delete {
-		background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.5 5V22H19.5V5H4.5Z' fill='%23676778' stroke='%23676778' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M10 10V16.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M14 10V16.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M2 5H22' stroke='%23676778' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M8 5L9.6445 2H14.3885L16 5H8Z' fill='%23676778' stroke='%23676778' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-		opacity: 0.2;
+	.new-window {
+		background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciICB3aWR0aD0iMjQiIGhlaWdodD0iMjQiICB2aWV3Qm94PScwIDAgNjUgNjknIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTIxNDMgMTk1OWg2NXY2OWgtNjV6Ii8+PC9jbGlwUGF0aD48L2RlZnM+PGcgY2xpcC1wYXRoPSJ1cmwoI2EpIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjE0MyAtMTk1OSkiPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0QwQ0VDRSIgc3Ryb2tlLW1pdGVybGltaXQ9IjgiIHN0cm9rZS13aWR0aD0iOCIgZD0iTTIxNjQgMTk5N2gtMTZ2MjZsMjgtM3YtMTIiLz48cGF0aCBmaWxsPSIjRDBDRUNFIiBkPSJtMjE2MiAyMDEzIDIwLTIzLTQtMy0xOSAyM1ptMjItMTYgNS0xOS0xOSA4WiIvPjwvZz48L3N2Zz4=');
 	}
 
-	.delete:hover,
-	.delete:focus {
+	.new-window:hover,
+	.new-window:focus {
 		transition: opacity 0.2s;
 		opacity: 1;
 	}

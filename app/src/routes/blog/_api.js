@@ -18,7 +18,7 @@ export async function api(request, resource, data) {
 		return { status: 401 };
 	}
 
-	if (request.method == 'GET') {
+	if (request.method == 'GET' && resource) {
 		// postDetails
 		return await anchor.getLastPosts(resource);
 	}
