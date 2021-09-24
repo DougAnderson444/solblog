@@ -1,5 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
+	export let value;
+	export let initialValue = `# Blog Title\nGo ahead, make a post!`;
+
 	let markdowneditorelement;
 	let initMDE;
 	let SimpleMDE;
@@ -30,10 +33,12 @@
 					}
 				}
 			],
-			initialValue: '# Blog Post \n make a post'
+			initialValue
 		});
+		value = simplemde.value();
 
 		simplemde.codemirror.on('change', function () {
+			value = simplemde.value();
 			console.log(Buffer.from(simplemde.value()).length);
 		});
 	});
@@ -46,7 +51,7 @@
 
 <style>
 	:global(.CodeMirror, .CodeMirror-scroll) {
-		min-height: 100px;
+		min-height: 50px;
 	}
 	:global(.CodeMirror-scroll) {
 		padding-bottom: 50px;

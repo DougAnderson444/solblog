@@ -15,16 +15,22 @@
 	import { onMount } from 'svelte';
 	import { scale } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
+	import { slide } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+
 	import MarkdownEditor from '$lib/MarkdownEditor.svelte';
 	import marked from 'marked';
 	// post will have metadata and content
 	export let posts;
 	export let blogId;
 
+	let value; // the blog post value we send to Solana
+
 	let anchor;
 	let initialize;
 	let makePost;
 	let content;
+	let preview = false;
 
 	onMount(async () => {
 		console.log({ posts });
@@ -67,7 +73,7 @@
 			>{blogId}</a
 		>
 	</h2>
-	<MarkdownEditor />
+	<MarkdownEditor bind:value />
 	<form
 		class="new"
 		action="/blog.json"
@@ -85,7 +91,21 @@
 			name="post"
 			aria-label="Add blog post"
 			placeholder="+ tap to blog on-chain with Solana"
+			{value}
+			hidden="true"
 		/>
+		{#if preview}
+			<div class="preview" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
+				{@html value && marked(value)}
+			</div>
+		{/if}
+		<div class="submit">
+			<label for="preview">
+				<input type="checkbox" bind:checked={preview} />Preview Final
+			</label>
+			<!-- {value} -->
+			<button>Post</button>
+		</div>
 	</form>
 	{#each posts as post (post.signature)}
 		<div
@@ -128,6 +148,43 @@
 </div>
 
 <style>
+	.preview {
+		background-color: white;
+		border-radius: 8px;
+		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
+		transform: translate(-1px, -1px);
+		margin: 0 0 0.5rem 0;
+		padding: 0.5rem;
+	}
+	.submit {
+		display: flex;
+	}
+	label {
+		display: block;
+		padding-left: 15px;
+		text-indent: -15px;
+	}
+
+	input {
+		width: 15px;
+		height: 15px;
+		padding: 0;
+		margin: 0;
+		vertical-align: bottom;
+		position: relative;
+		top: -1px;
+	}
+	form > .submit > button {
+		background-color: #4caf50; /* Green */
+		border: none;
+		color: white;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 16px;
+		margin-left: auto;
+	}
 	.blog {
 		width: 100%;
 		max-width: var(--column-width);
@@ -151,8 +208,8 @@
 
 	.new input {
 		font-size: 28px;
-		width: 100%;
 		padding: 0.5em 1em 0.3em 1em;
+		margin: 0 0.25em;
 		box-sizing: border-box;
 		background: rgba(255, 255, 255, 0.05);
 		border-radius: 8px;
