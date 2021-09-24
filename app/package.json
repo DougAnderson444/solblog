@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
@@ -10,15 +10,16 @@
   },
   "devDependencies": {
     "@sveltejs/kit": "next",
+    "marked": "^3.0.4",
     "prettier": "^2.4.1",
     "prettier-plugin-svelte": "^2.4.0",
-    "svelte": "^3.34.0",
     "rehype-stringify": "^9.0.2",
     "remark-parse": "^10.0.0",
     "remark-rehype": "^9.1.0",
+    "simplemde": "^1.11.2",
+    "svelte": "^3.34.0",
     "to-vfile": "^7.2.2",
-    "unified": "^10.1.0",
-    "marked": "^3.0.4"
+    "unified": "^10.1.0"
   },
   "type": "module",
   "dependencies": {
