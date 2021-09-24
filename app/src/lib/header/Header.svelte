@@ -1,6 +1,8 @@
 <script>
 	import { page } from '$app/stores';
 	import logo from './sblogo.svg';
+	import { MAIN_NET, DEV_NET } from '$lib/constants.js';
+	import { selectedNetwork } from '$lib/stores.js';
 </script>
 
 <header>
@@ -28,6 +30,10 @@
 
 	<div class="corner">
 		<!-- TODO put something else here? github link? -->
+		<select class="fancy-dropdown" bind:value={$selectedNetwork}>
+			<option value={DEV_NET}>DevNet</option>
+			<option value={MAIN_NET}>Mainnet</option>
+		</select>
 	</div>
 </header>
 
@@ -118,5 +124,27 @@
 
 	a:hover {
 		color: var(--accent-color);
+	}
+
+	.fancy-dropdown {
+		margin: 1em 1em;
+		background-color: #c636f6; /* Green */
+		background-image: linear-gradient(45deg, #c636f6, #14eaab);
+		border: none;
+		color: white;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 16px;
+		margin-left: auto;
+		border-radius: 2px;
+		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
+	}
+	option {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		padding: 5px;
 	}
 </style>
