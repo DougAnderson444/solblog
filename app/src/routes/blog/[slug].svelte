@@ -62,7 +62,11 @@
 
 <div class="blog">
 	<h1>Solana Blog</h1>
-	<h2>{blogId}</h2>
+	<h2>
+		<a href="https://explorer.solana.com/address/{blogId}?cluster=devnet" target="_blank"
+			>{blogId}</a
+		>
+	</h2>
 	<MarkdownEditor />
 	<form
 		class="new"

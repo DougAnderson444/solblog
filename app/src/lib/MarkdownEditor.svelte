@@ -9,33 +9,36 @@
 		const SimpleMDEModule = await import('simplemde');
 		SimpleMDE = SimpleMDEModule.default;
 
+		const getBytes = () => {
+			if (!simplemde?.value()) return '0';
+			console.log(simplemde.value());
+			return Buffer.from(simplemde.value(), 'utf8').length || '0';
+		};
+
 		simplemde = new SimpleMDE({
 			toolbar: false,
 			status: false,
 			element: markdowneditorelement,
-			// status: [
-			// 	'words',
-			// 	{
-			// 		className: 'bytes',
-			// 		defaultValue: function (el) {
-			// 			this.bytes = 0;
-			// 			el.innerHTML = '0 bytes';
-			// 		},
-			// 		onUpdate: function (el) {
-			// 			el.innerHTML = ++this.bytes + ' bytes';
-			// 		}
-			// 	}
-			// ],
+			status: [
+				{
+					className: 'bytes',
+					defaultValue: function (el) {
+						el.innerHTML = '0 of 566 bytes';
+					},
+					onUpdate: function (el) {
+						el.innerHTML = getBytes() + ' of 566 bytes';
+					}
+				}
+			],
 			initialValue: '# Blog Post \n make a post'
 		});
-	});
 
-	const handleKeyUp = () => {
-		console.log(simplemde.value());
-	};
+		simplemde.codemirror.on('change', function () {
+			console.log(Buffer.from(simplemde.value()).length);
+		});
+	});
 </script>
 
-<svelte:window on:keyup={handleKeyUp} />
 <svelte:head>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css" />
 </svelte:head>
