@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import logo from './sblogo.svg';
 	import { MAIN_NET, DEV_NET } from '$lib/constants.js';
-	import { selectedNetwork } from '$lib/stores.js';
+	import { selectedNetwork } from '$lib/stores';
 </script>
 
 <header>
@@ -128,10 +128,10 @@
 
 	.fancy-dropdown {
 		margin: 1em 1em;
-		background-color: #c636f6; /* Green */
+		background-color: rgb(64, 64, 64); /* Green */
 		background-image: linear-gradient(45deg, #c636f6, #14eaab);
 		border: none;
-		color: white;
+		color: rgb(231, 231, 231);
 		padding: 15px 32px;
 		text-align: center;
 		text-decoration: none;

@@ -6,14 +6,11 @@ import marked from 'marked';
 export async function get({ params }) {
 	// we could get the dynamic slug from the parameter of get.
 	const { slug } = params;
-	console.log({ slug });
 
 	if (!slug) return;
 
 	// array of the last 100 posts
 	let postDetails = await anchor.getLastPosts(slug);
-
-	console.log({ postDetails });
 
 	// apply markdown parser to the content
 	postDetails.forEach((post, index) => {
@@ -26,3 +23,19 @@ export async function get({ params }) {
 
 	return { body };
 }
+
+// POST /blog.json
+export const post = async (request) => {
+	// because index.svelte posts a FormData object,
+	// request.body is _also_ a (readonly) FormData
+	// object, which allows us to get form data
+	// with the `body.get(key)` method
+	let post = request.body.get('post');
+	let blogid = request.params.slug;
+
+	console.log('POST', { post }, { blogid });
+
+	let postDeets = await anchor.makePost(post, blogid);
+
+	return postDeets;
+};

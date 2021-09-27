@@ -17,9 +17,13 @@
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import Wallet from '$lib/Wallet.svelte';
 
 	import MarkdownEditor from '$lib/MarkdownEditor.svelte';
 	import marked from 'marked';
+
+	import { selectedNetwork } from '$lib/stores'; // from <Header /> {slot}
+
 	// post will have metadata and content
 	export let posts;
 	export let blogId;
@@ -33,7 +37,6 @@
 	let preview = false;
 
 	onMount(async () => {
-		console.log({ posts });
 		anchor = await import('$lib/anchor.js');
 
 		initialize = async () => {
@@ -65,18 +68,26 @@
 <svelte:head>
 	<title>Solana Blog</title>
 </svelte:head>
-
+<header>
+	<div class="corner" id="left-corner" />
+	<div class="corner">
+		<Wallet />
+	</div>
+</header>
 <div class="blog">
 	<h1>Solana Blog</h1>
 	<h2>
-		<a href="https://explorer.solana.com/address/{blogId}?cluster=devnet" target="_blank"
-			>{blogId}</a
-		>
+		Blog ID:
+		<a
+			href="https://explorer.solana.com/address/{blogId}?cluster={$selectedNetwork}"
+			target="_blank"
+			>{blogId}
+		</a>
 	</h2>
 	<MarkdownEditor bind:value />
 	<form
 		class="new"
-		action="/blog.json"
+		action="/blog/{blogId}.json"
 		method="post"
 		use:enhance={{
 			result: async (res, form) => {
@@ -140,7 +151,10 @@
 				<button class="save" aria-label="Save post" />
 			</form>
 
-			<a href="https://explorer.solana.com/tx/{post.signature}?cluster=devnet" target="_blank">
+			<a
+				href="https://explorer.solana.com/tx/{post.signature}?cluster={$selectedNetwork}"
+				target="_blank"
+			>
 				<button class="new-window" aria-label="Open in explorer" />
 			</a>
 		</div>
@@ -148,6 +162,15 @@
 </div>
 
 <style>
+	header {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.corner {
+		width: 10em;
+		height: 4em;
+	}
 	.preview {
 		background-color: white;
 		border-radius: 8px;
@@ -158,6 +181,7 @@
 	}
 	.submit {
 		display: flex;
+		margin-bottom: 0.75em;
 	}
 	label {
 		display: block;
@@ -184,6 +208,8 @@
 		display: inline-block;
 		font-size: 16px;
 		margin-left: auto;
+		border-radius: 2px;
+		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
 	}
 	.blog {
 		width: 100%;

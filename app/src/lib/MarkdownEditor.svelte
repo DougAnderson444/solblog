@@ -20,7 +20,6 @@
 
 		simplemde = new SimpleMDE({
 			toolbar: false,
-			status: false,
 			element: markdowneditorelement,
 			status: [
 				{
@@ -39,7 +38,6 @@
 
 		simplemde.codemirror.on('change', function () {
 			value = simplemde.value();
-			console.log(Buffer.from(simplemde.value()).length);
 		});
 	});
 </script>
@@ -47,16 +45,17 @@
 <svelte:head>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css" />
 </svelte:head>
-<textarea this={markdowneditorelement} hidden="true" />
+<textarea bind:this={markdowneditorelement} hidden={true} />
 
 <style>
 	:global(.CodeMirror, .CodeMirror-scroll) {
-		min-height: 50px;
+		min-height: 90px;
 	}
-	:global(.CodeMirror-scroll) {
-		padding-bottom: 50px;
-	}
+
 	/* .CodeMirror-scroll  */
+	:global(.CodeMirror-scroll) {
+		padding-bottom: 60px;
+	}
 
 	:global(.CodeMirror) {
 		background-color: white;

@@ -8,7 +8,7 @@
 	--primary-color: #b9c6d2;
 	--secondary-color: #d0dde9;
 	--tertiary-color: #edf0f8;
-	--accent-color: #ff3e00;
+	--accent-color: #4caf50;
 	--heading-color: rgba(0, 0, 0, 0.7);
 	--text-color: #444444;
 	--background-without-opacity: rgba(255, 255, 255, 0.7);
@@ -106,3 +106,16 @@ button:focus:not(:focus-visible) {
 		font-size: 2.4rem;
 	}
 }
+	form > .submit > button {
+		background-color: #4caf50; /* Green */
+		border: none;
+		color: white;
+		padding: 15px 32px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 16px;
+		margin-left: auto;
+		border-radius: 2px;
+		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
+	}

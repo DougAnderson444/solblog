@@ -16,12 +16,16 @@ export const get = async (request) => {
 
 // POST /blog.json
 export const post = async (request) => {
+	console.log('post!', { request });
+
+	let post = request.body.get('post');
+	console.log({ post });
 	const response = await api(request, request.body.blogid, {
 		// because index.svelte posts a FormData object,
 		// request.body is _also_ a (readonly) FormData
 		// object, which allows us to get form data
 		// with the `body.get(key)` method
-		post: request.body.get('post')
+		post
 	});
 
 	return response;

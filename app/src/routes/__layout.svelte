@@ -24,7 +24,11 @@
 </main>
 
 <footer>
-	<p>source code: <a href="https://github.com/DougAnderson444/solblog">https://github.com/DougAnderson444/solblog</a></p>
+	<p>
+		source code: <a href="https://github.com/DougAnderson444/solblog"
+			>https://github.com/DougAnderson444/solblog</a
+		>
+	</p>
 </footer>
 
 <style>

@@ -11,7 +11,7 @@ export function enhance(form, { pending, error, result }) {
 		const body = new FormData(form);
 
 		if (pending) pending(body, form);
-
+		console.log(form.action, form.method, { body });
 		try {
 			const res = await fetch(form.action, {
 				method: form.method,

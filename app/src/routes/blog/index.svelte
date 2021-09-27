@@ -1,11 +1,70 @@
+<script>
+	import { onMount } from 'svelte';
+	import Wallet from '$lib/Wallet.svelte';
+	import { BlogWriter, getBlogAccounts } from '$lib/anchor';
+	import { adapter, connected } from '$lib/stores';
+
+	let provider; // wallet provider (ie. Phantom)
+
+	let blogId = 'FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm';
+
+	let blogAccounts;
+
+	onMount(() => {});
+
+	const showBloggerAccounts = () => {
+		blogAccounts = getBlogAccounts($adapter.publicKey);
+	};
+
+	$: $connected && showBloggerAccounts();
+</script>
+
 <svelte:head>
 	<title>Solana Blog</title>
 </svelte:head>
 
 <div class="blog">
-	<h1>Solana Blog</h1>
+	<form class="new" action="/blog/{blogId}">
+		<h1>Go to existing blogger or blog:</h1>
+		<input
+			class="new"
+			placeholder="FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm"
+			bind:value={blogId}
+		/>
+		<div class="submit">
+			<!-- <label for="preview">
+				<input type="checkbox" id="preview" />Option
+			</label> -->
+			<!-- {value} -->
+			<button>GO</button>
+		</div>
+	</form>
 
-	<p><a href="blog/FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm">Demo Blog</a></p>
+	<form action="/blog/{blogId}" method="get">
+		<h1>Blogs Linked to Key</h1>
+		<p>1) Show or make blogs linked to your Public Key:</p>
+		<Wallet />
+		{#if $adapter && $connected}
+			<!-- Lookup all (blog) accounts for this key -->
+			<!-- We need to cross reference all accounts owned by this program
+		which were paid for by the key or authority == key
+
+
+		-->{#if blogAccounts?.length > 0}
+				{#each blogAccounts as blogAccount}
+					<a href="/blog/{blogAccount}">{blogAccount}</a>
+				{/each}
+			{/if}
+			<div class="submit">
+				<!-- <label for="preview">
+				<input type="checkbox" id="preview" />
+			</label> -->
+				<!-- {value} -->
+				<button>Create New Blog Account</button>
+			</div>
+		{/if}
+	</form>
+	<!-- form > .submit > button { -->
 </div>
 
 <style>
@@ -26,18 +85,20 @@
 
 	input:focus-visible {
 		box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.1);
-		border: 1px solid #ff3e00 !important;
+		border: 1px solid rgba(51, 161, 0, 0.658) !important;
 		outline: none;
 	}
 
 	.new input {
-		font-size: 28px;
+		font-size: 1.5em;
 		width: 100%;
 		padding: 0.5em 1em 0.3em 1em;
 		box-sizing: border-box;
 		background: rgba(255, 255, 255, 0.05);
 		border-radius: 8px;
 		text-align: center;
+		border: 1px solid #b0b9ac !important;
+		box-shadow: inset 1px 1px 6px rgba(0, 0, 0, 0.1);
 	}
 
 	.post {
