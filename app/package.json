@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
@@ -10,6 +10,8 @@
   },
   "devDependencies": {
     "@sveltejs/kit": "next",
+    "events.once": "^2.0.2",
+    "immortal-db": "^1.1.0",
     "marked": "^3.0.4",
     "prettier": "^2.4.1",
     "prettier-plugin-svelte": "^2.4.0",
@@ -18,7 +20,9 @@
     "remark-rehype": "^9.1.0",
     "simplemde": "^1.11.2",
     "svelte": "^3.34.0",
+    "svelte-preprocess": "^4.9.5",
     "to-vfile": "^7.2.2",
+    "typescript": "^4.4.3",
     "unified": "^10.1.0"
   },
   "type": "module",
