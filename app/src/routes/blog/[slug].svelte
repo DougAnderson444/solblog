@@ -1,12 +1,10 @@
 <script context="module">
-	import { enhance } from '$lib/form';
-
 	export async function load({ page, fetch }) {
 		const slug = page.params.slug;
-		let response = await fetch(`${slug}.json`); // uses [slug].json.js to fetch
-		let posts = await response.json();
+		// let response = await fetch(`${slug}.json`); // uses [slug].json.js to fetch
+		// let posts = await response.json();
 		return {
-			props: { posts, blogId: slug }
+			props: { blogId: slug }
 		};
 	}
 </script>
@@ -17,12 +15,13 @@
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import Wallet from '$lib/Wallet.svelte';
 
+	import Wallet from '$lib/Wallet.svelte';
 	import MarkdownEditor from '$lib/MarkdownEditor.svelte';
 	import marked from 'marked';
+	import { loadAnchorClient } from '$lib/helpers/utils';
 
-	import { selectedNetwork } from '$lib/stores'; // from <Header /> {slot}
+	import { selectedNetwork, anchorClient, connected } from '$lib/stores';
 
 	// post will have metadata and content
 	export let posts;
@@ -30,39 +29,38 @@
 
 	let value; // the blog post value we send to Solana
 
-	let anchor;
-	let initialize;
-	let makePost;
-	let content;
+	let handleSubmitPost;
 	let preview = false;
+	let newPost;
+	let postDeets;
+	let blogger;
+
+	let showBlogger;
+
+	$: blogId && showBlogger && showBlogger();
 
 	onMount(async () => {
-		anchor = await import('$lib/anchor.js');
+		await loadAnchorClient();
 
-		initialize = async () => {
-			await anchor.initialize();
+		let postDetails = await $anchorClient.getLastPosts(blogId);
+
+		// apply markdown parser to the content
+		postDetails.forEach((post, index) => {
+			postDetails[index].content.forEach((contentPiece, i) => {
+				postDetails[index].content[i] = marked(contentPiece);
+			});
+		});
+		posts = postDetails;
+
+		handleSubmitPost = async () => {
+			console.log($anchorClient);
+			postDeets = await $anchorClient.makePost(value, blogId);
+			// TODO: slide this new one in
 		};
-
-		makePost = async () => {
-			await anchor.makePost(
-				'a new blog post 💖 at ' + new Date(Date.now()).toLocaleString('en-GB')
-			);
+		showBlogger = async () => {
+			$anchorClient.getBlogAuthority(blogId).then((b) => (blogger = b));
 		};
 	});
-
-	async function patch(res) {
-		const post = await res.json();
-
-		posts = posts.map((t) => {
-			if (t.signature === post.signature) return post;
-			return t;
-		});
-	}
-
-	$: posts && test();
-	function test() {
-		content = marked('# Marked in Node.js\n\nRendered by **marked**.');
-	}
 </script>
 
 <svelte:head>
@@ -76,6 +74,15 @@
 </header>
 <div class="blog">
 	<h1>Solana Blog</h1>
+	{#if blogger}
+		<h2>
+			Blogger:
+			<a
+				href="https://explorer.solana.com/address/{blogger}?cluster={$selectedNetwork}"
+				target="_blank"
+				>{blogger}
+			</a>
+		</h2>{/if}
 	<h2>
 		Blog ID:
 		<a
@@ -85,93 +92,73 @@
 		</a>
 	</h2>
 	<MarkdownEditor bind:value />
-	<form
-		class="new"
-		action="/blog/{blogId}.json"
-		method="post"
-		use:enhance={{
-			result: async (res, form) => {
-				const created = await res.json();
-				posts = [...posts, created];
 
-				form.reset();
-			}
-		}}
-	>
-		<input
-			name="post"
-			aria-label="Add blog post"
-			placeholder="+ tap to blog on-chain with Solana"
-			{value}
-			hidden="true"
-		/>
-		{#if preview}
-			<div class="preview" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
-				{@html value && marked(value)}
-			</div>
+	<input
+		name="post"
+		aria-label="Add blog post"
+		placeholder="+ tap to blog on-chain with Solana"
+		bind:value
+		hidden
+	/>
+
+	{#if preview}
+		<div class="view" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
+			{@html value && marked(value)}
+		</div>
+	{/if}
+
+	<div class="submit">
+		<label for="preview">
+			<input type="checkbox" bind:checked={preview} /> Preview Final
+		</label>
+		{#if $connected}
+			<button on:click|preventDefault={handleSubmitPost}>Post</button>
+		{:else}
+			<Wallet />
 		{/if}
-		<div class="submit">
-			<label for="preview">
-				<input type="checkbox" bind:checked={preview} />Preview Final
-			</label>
-			<!-- {value} -->
-			<button>Post</button>
-		</div>
-	</form>
-	{#each posts as post (post.signature)}
-		<div
-			class="post"
-			class:read={post.read}
-			transition:scale|local={{ start: 0.7 }}
-			animate:flip={{ duration: 200 }}
-		>
-			<form
-				action="/blog/{blogId}.json?_method=patch"
-				method="post"
-				use:enhance={{
-					pending: (data) => {
-						post.read = !!data.get('read');
-					},
-					result: patch
-				}}
-			>
-				<input type="hidden" name="read" value={post.read ? '' : 'true'} />
-				<button class="toggle" aria-label="Mark post as {post.read ? 'not read' : 'read'}" />
-			</form>
+	</div>
 
-			<form
-				class="text"
-				action="/blog/{post.signature}.json?_method=patch"
-				method="post"
-				use:enhance={{
-					result: patch
-				}}
-			>
+	{#if posts}
+		{#each posts as post (post.signature)}
+			<div class="view" transition:scale|local={{ start: 0.7 }} animate:flip={{ duration: 200 }}>
 				{@html post.content[post.content.length - 1]}
-				<button class="save" aria-label="Save post" />
-			</form>
 
-			<a
-				href="https://explorer.solana.com/tx/{post.signature}?cluster={$selectedNetwork}"
-				target="_blank"
-			>
-				<button class="new-window" aria-label="Open in explorer" />
-			</a>
-		</div>
-	{/each}
+				<button class="explore" aria-label="Save post" />
+				<div class="minifootr">
+					<div class="timestamp">{post.timestamp}</div>
+					<div>
+						<a
+							href="https://explorer.solana.com/tx/{post.signature}?cluster={$selectedNetwork}"
+							target="_blank"
+						>
+							View in Solana Explorer
+						</a>
+					</div>
+				</div>
+			</div>
+		{/each}
+	{/if}
 </div>
 
 <style>
-	header {
+	.right {
+		text-align: right;
+	}
+	.timestamp {
+		font-size: 0.65em;
+		color: rgba(97, 97, 97, 0.797);
+	}
+	header,
+	.minifootr {
 		display: flex;
 		justify-content: space-between;
 	}
 
 	.corner {
-		width: 10em;
+		width: 8em;
 		height: 4em;
 	}
-	.preview {
+	.view {
 		background-color: white;
 		border-radius: 8px;
 		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
@@ -181,7 +168,7 @@
 	}
 	.submit {
 		display: flex;
-		margin-bottom: 0.75em;
+		margin-bottom: 2em;
 	}
 	label {
 		display: block;
@@ -198,19 +185,7 @@
 		position: relative;
 		top: -1px;
 	}
-	form > .submit > button {
-		background-color: #4caf50; /* Green */
-		border: none;
-		color: white;
-		padding: 15px 32px;
-		text-align: center;
-		text-decoration: none;
-		display: inline-block;
-		font-size: 16px;
-		margin-left: auto;
-		border-radius: 2px;
-		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
-	}
+
 	.blog {
 		width: 100%;
 		max-width: var(--column-width);
@@ -305,15 +280,15 @@
 		opacity: 1;
 	}
 
-	.save {
+	.explore {
 		position: absolute;
 		right: 0;
 		opacity: 0;
 		background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20.5 2H3.5C2.67158 2 2 2.67157 2 3.5V20.5C2 21.3284 2.67158 22 3.5 22H20.5C21.3284 22 22 21.3284 22 20.5V3.5C22 2.67157 21.3284 2 20.5 2Z' fill='%23676778' stroke='%23676778' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M17 2V11H7.5V2H17Z' fill='white' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M13.5 5.5V7.5' stroke='%23676778' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M5.99844 2H18.4992' stroke='%23676778' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E%0A");
 	}
 
-	.post input:focus + .save,
-	.save:focus {
+	.post input:focus + .explore,
+	.explore:focus {
 		transition: opacity 0.2s;
 		opacity: 1;
 	}
