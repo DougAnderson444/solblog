@@ -33,10 +33,11 @@ export const newWalletAdapter = (): WalletAdapter => {
   return wallet;
 };
 
-export const phantomConnect = async (): Promise<void> => {
+export const phantomConnect = async ({ onlyIfTrusted } = { }): Promise<void> => {
   const newWallet = newWalletAdapter();
+  console.log('window.solana.isConnected', window.solana.isConnected)
   // eslint-disable-next-line
-  await newWallet.connect(); // request
+  await newWallet.connect({ onlyIfTrusted }); // request
   if(!newWallet.isConnected) await once(newWallet, "connect") // authorized
   adapter.update(() => newWallet); // use it as adapter
 };
