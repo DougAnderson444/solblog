@@ -11,7 +11,7 @@
 	let mounted;
 	let balance;
 	let promise;
-	let BlogWriter;
+	let disconnected = false;
 
 	$: shortKey =
 		$connected &&
@@ -30,12 +30,14 @@
 
 	onMount(async () => {
 		await loadAnchorClient();
-		await phantomConnect({ onlyIfTrusted: true }); // try to eagerly connect only if previously authorized
+		console.log({ disconnected });
+		if (!disconnected) await phantomConnect({ onlyIfTrusted: true }); // try to eagerly connect only if previously authorized
 		mounted = true;
 	});
 
 	const handleDisconnect = () => {
 		promise = null;
+		disconnected = true; // otherwise this app tends to reconnectin onMount?
 		$adapter.disconnect(); // calls window.solana.disconnect() which triggers adapter.update in wallet.ts
 	};
 

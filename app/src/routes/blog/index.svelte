@@ -6,10 +6,12 @@
 	let provider; // wallet provider (ie. Phantom)
 
 	let blogId = 'FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm';
-
+	let mounted;
 	let blogAccounts;
 
-	onMount(() => {});
+	onMount(() => {
+		mounted = true;
+	});
 
 	const showBloggerAccounts = async () => {
 		blogAccounts = await $anchorClient.getBlogAccounts($adapter.publicKey);
@@ -48,7 +50,9 @@
 
 	<h1>Blogs Linked to Key</h1>
 	<p>1) Show or make blogs linked to your Public Key:</p>
-	<Wallet />
+	{#if mounted}
+		<Wallet />
+	{/if}
 	{#if $connected}
 		<!-- Lookup all (blog) accounts for this key -->
 		<!-- We need to cross reference all accounts owned by this program

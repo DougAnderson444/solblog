@@ -37,6 +37,8 @@
 
 	let showBlogger;
 
+	let mounted;
+
 	$: blogId && showBlogger && showBlogger();
 
 	onMount(async () => {
@@ -60,6 +62,7 @@
 		showBlogger = async () => {
 			$anchorClient.getBlogAuthority(blogId).then((b) => (blogger = b));
 		};
+		mounted = true;
 	});
 </script>
 
@@ -69,7 +72,9 @@
 <header>
 	<div class="corner" id="left-corner" />
 	<div class="corner">
-		<Wallet />
+		{#if mounted}
+			<Wallet />
+		{/if}
 	</div>
 </header>
 <div class="blog">
@@ -113,7 +118,7 @@
 		</label>
 		{#if $connected}
 			<button on:click|preventDefault={handleSubmitPost}>Post</button>
-		{:else}
+		{:else if mounted}
 			<Wallet />
 		{/if}
 	</div>
@@ -155,8 +160,10 @@
 	}
 
 	.corner {
-		width: 8em;
+		width: 100%;
 		height: 4em;
+		margin: auto;
+		text-align: end;
 	}
 	.view {
 		background-color: white;
