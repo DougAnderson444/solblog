@@ -43,7 +43,7 @@ export default class AnchorClient {
 				: new anchor.Wallet(anchor.web3.Keypair.generate());
 		// maps anchor calls to Phantom direction
 		this.provider = new anchor.Provider(this.connection, wallet, opts);
-		this.program = new anchor.Program(idl, programId, this.provider);
+		this.program = new anchor.Program(idl, this.programId, this.provider);
 	}
 
 	setWallet(keypair = false) {
@@ -54,7 +54,8 @@ export default class AnchorClient {
 				? new anchor.Wallet(keypair)
 				: new anchor.Wallet(anchor.web3.Keypair.generate());
 		this.provider = new anchor.Provider(this.connection, wallet, opts);
-		anchor.setProvider(this.provider);
+		anchor.setProvider(this.provider); // doesn't seem to be effective here?
+		this.program = new anchor.Program(idl, this.programId, this.provider); // just set a while new program
 	}
 
 	async initialize() {
@@ -86,9 +87,7 @@ export default class AnchorClient {
 		let blogAccount = new anchor.web3.PublicKey(blogAccountStr);
 
 		const utf8encoded = Buffer.from(post); // encoder.encode(post); // doesn't like UInt8Array?
-		console.log('blogAccount: ', { blogAccount }, blogAccount.publicKey, {
-			provider: this.program
-		});
+
 		// Execute the RPC.
 		const tx = await this.program.rpc.makePost(
 			// input must be compatible with UTF8 Vector in rust
@@ -121,7 +120,6 @@ export default class AnchorClient {
 		);
 		// You could do this, but you've got to parse the buffer data (tpyed array) yourself.... ew.
 		// let accountInfo = await connection.getAccountInfo(new anchor.web3.PublicKey(blogid));
-		console.log({ accountInfo });
 		return accountInfo.authority.toString();
 	};
 	// dev only, use dev connection
@@ -141,7 +139,6 @@ export default class AnchorClient {
 
 	// Read is a pure Solana Web3.js exercise, no Anchor really needed
 	getLastPosts = async (blogid, limit = 100) => {
-		console.log({ blogid }, { limit });
 		const accountpublicKey = new anchor.web3.PublicKey(blogid);
 
 		const parsedConfirmedTransactions = await this.getTransactionForAddress(accountpublicKey);
@@ -190,9 +187,7 @@ export default class AnchorClient {
 				!(instr.type === 'createAccount' && instr.info.owner == this.programId.toString())
 			)
 				return;
-			console.log({ tx });
 			blogAccounts.push(tx.meta.innerInstructions[0].instructions[0].parsed.info.newAccount);
-			console.log({ blogAccounts }, 1);
 
 			return;
 
@@ -220,7 +215,6 @@ export default class AnchorClient {
 					blogAccounts.push(account.pubkey.toString());
 			});
 		});
-		console.log({ blogAccounts }, 2);
 
 		return blogAccounts;
 	};
