@@ -23,7 +23,7 @@ pub mod solblog {
             msg!("Invalid UTF-8, from byte {}", err.valid_up_to());
             ProgramError::InvalidInstructionData
         })?;
-        msg!("{:?}", post); // msg!() is a Solana macro that prints string slices to the program log, which we can grab from the transaction block data
+        msg!(post); // msg!() is a Solana macro that prints string slices to the program log, which we can grab from the transaction block data
 
         let b_acc = &mut ctx.accounts.blog_account;
         b_acc.latest_post = new_post; // save the latest post in the account. 
