@@ -1,8 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import Wallet from '$lib/Wallet.svelte';
-	import { BlogWriter, getBlogAccounts } from '$lib/anchor';
-	import { adapter, connected } from '$lib/stores';
+	import { adapter, connected, anchorClient } from '$lib/stores';
 
 	let provider; // wallet provider (ie. Phantom)
 
@@ -12,11 +11,18 @@
 
 	onMount(() => {});
 
-	const showBloggerAccounts = () => {
-		blogAccounts = getBlogAccounts($adapter.publicKey);
+	const showBloggerAccounts = async () => {
+		blogAccounts = await $anchorClient.getBlogAccounts($adapter.publicKey);
 	};
 
-	$: $connected && showBloggerAccounts();
+	$: $connected && $anchorClient && showBloggerAccounts();
+
+	const handleCreateBlog = async () => {
+		let blogAccount = await $anchorClient.initialize();
+		console.log($anchorClient, blogAccount);
+		// @ts-ignore
+		window.location = '/blog/' + blogAccount.publicKey.toString();
+	};
 </script>
 
 <svelte:head>
@@ -40,30 +46,30 @@
 		</div>
 	</form>
 
-	<form action="/blog/{blogId}" method="get">
-		<h1>Blogs Linked to Key</h1>
-		<p>1) Show or make blogs linked to your Public Key:</p>
-		<Wallet />
-		{#if $adapter && $connected}
-			<!-- Lookup all (blog) accounts for this key -->
-			<!-- We need to cross reference all accounts owned by this program
+	<h1>Blogs Linked to Key</h1>
+	<p>1) Show or make blogs linked to your Public Key:</p>
+	<Wallet />
+	{#if $connected}
+		<!-- Lookup all (blog) accounts for this key -->
+		<!-- We need to cross reference all accounts owned by this program
 		which were paid for by the key or authority == key
 
 
 		-->{#if blogAccounts?.length > 0}
+			<ul>
 				{#each blogAccounts as blogAccount}
-					<a href="/blog/{blogAccount}">{blogAccount}</a>
+					<li><a href="/blog/{blogAccount}">{blogAccount}</a></li>
 				{/each}
-			{/if}
-			<div class="submit">
-				<!-- <label for="preview">
+			</ul>
+		{/if}
+		<div class="submit">
+			<!-- <label for="preview">
 				<input type="checkbox" id="preview" />
 			</label> -->
-				<!-- {value} -->
-				<button>Create New Blog Account</button>
-			</div>
-		{/if}
-	</form>
+			<!-- {value} -->
+			<button on:click={handleCreateBlog}>Create New Blog Account</button>
+		</div>
+	{/if}
 	<!-- form > .submit > button { -->
 </div>
 
