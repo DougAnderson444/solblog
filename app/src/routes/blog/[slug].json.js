@@ -1,6 +1,7 @@
 // [slug].json.js
 // import vfile from 'to-vfile';
-import * as anchor from '$lib/anchor.js';
+import { anchorClient } from '$lib/stores';
+
 import marked from 'marked';
 
 export async function get({ params }) {
@@ -10,8 +11,9 @@ export async function get({ params }) {
 	if (!slug) return;
 
 	// array of the last 100 posts
-	let postDetails = await anchor.getLastPosts(slug);
+	let postDetails = await get(anchorClient).getLastPosts(slug);
 
+	console.log('get marked', { postDetails });
 	// apply markdown parser to the content
 	postDetails.forEach((post, index) => {
 		postDetails[index].content.forEach((contentPiece, i) => {
@@ -20,6 +22,7 @@ export async function get({ params }) {
 	});
 
 	const body = JSON.stringify(postDetails);
+	console.log({ body });
 
 	return { body };
 }
@@ -31,11 +34,11 @@ export const post = async (request) => {
 	// object, which allows us to get form data
 	// with the `body.get(key)` method
 	let post = request.body.get('post');
-	let blogid = request.params.slug;
+	let blogAccount = request.params.slug;
 
-	console.log('POST', { post }, { blogid });
+	console.log('POST', { post }, { blogAccount });
 
-	let postDeets = await anchor.makePost(post, blogid);
+	let postDeets = await anchor.makePost(post, blogAccount);
 
 	return postDeets;
 };
