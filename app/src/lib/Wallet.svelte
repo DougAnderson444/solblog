@@ -2,28 +2,45 @@
 	//lang="ts"
 	import { onMount } from 'svelte';
 
-	import { adapter, connected, selectedNetwork, selectedWallet } from '$lib/stores';
-	import { MAIN_NET, DEV_NET, APP_WALLET } from '$lib/constants.js';
+	import { adapter, connected, selectedNetwork, anchorClient } from '$lib/stores';
+	import { DEV_NET } from '$lib/constants.js';
 
 	import { phantomConnect } from '$lib/helpers/wallet';
-
-	import { airDrop, getBalance } from '$lib/anchor';
+	import { loadAnchorClient } from '$lib/helpers/utils';
 
 	let mounted;
 	let balance;
+	let promise;
+	let BlogWriter;
 
-	onMount(() => {
+	$: shortKey =
+		$connected &&
+		$adapter.publicKey.toString().slice(0, 5) +
+			'...' +
+			$adapter.publicKey
+				.toString()
+				.slice($adapter.publicKey.toString().length - 4, $adapter.publicKey.toString().length - 1);
+
+	$: buttonLabel =
+		!$connected && promise != null
+			? 'Connecting...'
+			: $adapter?.publicKey
+			? 'Connected to ' + shortKey
+			: 'Connect';
+
+	onMount(async () => {
+		await loadAnchorClient();
+		await phantomConnect({ onlyIfTrusted: true }); // try to eagerly connect only if previously authorized
 		mounted = true;
 	});
 
-	let promise;
-
 	const handleDisconnect = () => {
 		promise = null;
-		adapter.update(() => undefined);
+		$adapter.disconnect(); // calls window.solana.disconnect() which triggers adapter.update in wallet.ts
 	};
 
 	const handleConnect = () => {
+		// first time style connect, blank options
 		promise = phantomConnect().then(() => {
 			promise = null;
 		});
@@ -40,61 +57,43 @@
 		window.open('https://phantom.app/', '_blank');
 	};
 	const drop = async () => {
-		await airDrop($adapter.publicKey);
+		await $anchorClient.airDrop($adapter.publicKey);
 		getConnectedBalance(); // refresh balance
 	};
 	const getConnectedBalance = async () => {
 		console.log('Connected. Getting balance', $adapter.publicKey.toString());
 
-		getBalance($adapter.publicKey).then((bal) => {
+		$anchorClient.getBalance($adapter.publicKey).then((bal) => {
 			if (typeof bal == 'number') balance = bal;
 		});
 	};
 
 	$: mounted && $connected && getConnectedBalance(); // refresh balance
-	$: connectionStatus = `${$connected ? '' : 'Not'} Connected`;
 </script>
-
-<!-- {#if !$connected}
-	<select class="fancy-dropdown" bind:value={$selectedWallet}>
-		<option value={!APP_WALLET} selected={$selectedWallet != APP_WALLET}>Local Keypair</option>
-		<option value={APP_WALLET} selected={$selectedWallet == APP_WALLET}>Connect Wallet</option>
-	</select>
-{/if} -->
 
 {#if !$connected}
 	<button class={promise ? 'yellow' : 'red'} on:click|preventDefault={handleConnect}>
-		Connect
+		{buttonLabel}
 	</button>
 {/if}
-<br />
-{#if !$connected && promise != null}
-	{#await promise}
-		<p>Connecting...</p>
-	{:then _pubkey}
-		<p style="color: green">Connected to {$adapter && $adapter.publicKey}</p>
-	{:catch error}
-		<p style="color: red">{error}</p>
-	{/await}
-{/if}
-
 {#if $connected}
-	<button class="green" on:click|preventDefault={handleDisconnect}> Disconnect </button>
-{/if}
-<div class="status">{connectionStatus}</div>
-{#if $adapter && $selectedNetwork == DEV_NET && $connected}<div class="status">
-		{#if typeof balance == 'number'}
-			<a
-				href="https://explorer.solana.com/address/{$adapter.publicKey}?cluster={$selectedNetwork}"
-				target="_blank"
-			>
-				Balance</a
-			>: {(balance / 1000000000).toFixed(5)} SOL
-			{#if balance < 50000000}
-				<button class="drop" on:click|preventDefault={drop}> AirDrop some SOL on DevNet </button>
+	<button class="green" on:click|preventDefault={handleDisconnect}>
+		Disconnect from {shortKey}</button
+	>
+	{#if $adapter && $selectedNetwork == DEV_NET}<div class="status">
+			{#if typeof balance == 'number'}
+				<a
+					href="https://explorer.solana.com/address/{$adapter.publicKey}?cluster={$selectedNetwork}"
+					target="_blank"
+				>
+					Balance</a
+				>: {(balance / 1000000000).toFixed(5)} SOL
+				{#if balance < 50000000}
+					<button class="drop" on:click|preventDefault={drop}> AirDrop some SOL on DevNet </button>
+				{/if}
 			{/if}
-		{/if}
-	</div>
+		</div>
+	{/if}
 {/if}
 
 <style>
