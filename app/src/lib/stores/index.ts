@@ -32,4 +32,4 @@ export const connected = derived(adapter, ($adapter) => {
 
 export const selectedNetwork = writable(DEV_NET);
 export const selectedWallet = writable(!APP_WALLET);
-export const blogWriter = writable(null);
+export const anchorClient = writable(null);
