@@ -14,7 +14,6 @@
 
 		const getBytes = () => {
 			if (!simplemde?.value()) return '0';
-			console.log(simplemde.value());
 			return Buffer.from(simplemde.value(), 'utf8').length || '0';
 		};
 
