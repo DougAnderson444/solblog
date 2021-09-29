@@ -514,9 +514,9 @@ async makePost(post, blogAccountStr) {
 
 In order for these calls to work, we need this `this.program` that you see used everywhere, so let's take care of that.
 
-### `program.*`
+### Creating `program.*`
 
-We create program using a call to the class constructor:
+We create `program` using a call to the class constructor:
 
 ```js
 // anchorClient.js
@@ -543,13 +543,13 @@ export default class AnchorClient {
 
 Let's dissect what's going on here. 
 
-In order to start up anchor.program, we need three things:
+In order to start up `anchor.program`, we need three things:
 
 1. IDL
 2. ProgramID, and
 3. Wallet Provider
 
-Our IDL (json file) is saved alongside our rust program at:
+Our `IDL` (`json` file) is saved alongside our rust program at:
 
 ```
 |
@@ -569,7 +569,7 @@ import idl from '../../../target/idl/solblog.json';
 
 If you're using a different framework for front end, you may need to change this. But for this tutorial, it works.
 
-Second, our programId is the public key of our program keypair that we generated when we ran `anchor build`, remember that?
+Second, our `programId` is the `publicKey` of our program keypair that we generated when we ran `anchor build`, remember that?
 
 ```
 |
@@ -594,25 +594,68 @@ const getDevPgmId = () => {
 };
 ```
 
-When you want to use a program in production, instead of calling `getDevPgmId()` you would simply pass in the `programId` to the constructor.
+When you want to use a `program` in production, instead of calling `getDevPgmId()` you would simply pass in the `programId` to the constructor.
 
-Lastly, we need a Wallet Provider. Anchor gives us the option of making a provider using:
+Lastly, we need a Wallet `Provider`. Anchor gives us the option of making a provider using:
 
 ```js
 new anchor.Provider(connection, wallet, opts);
 ```
 
-Connection is straightforward enough, we just use the Solana Web3 library and pass in one of the Solana network endpoints, such as devnet:
+Connection is straightforward enough, we just use the [Solana Web3 library](https://solana-labs.github.io/solana-web3.js/) (which is re-exported by Anchor) and pass in one of the Solana network endpoints, such as devnet:
 
 ```js
+// anchorClient.js
+
 connection = new anchor.web3.Connection("https://api.devnet.solana.com", 'confirmed');
 ```
 
-For a Wallet, Anchor only provides a Nodejs wallet. But since we want our code to run in the browser, we either need to provide a keypair or a mapping to a waller provider, such as Phantom wallet. For ease of simplicity, I chose Phantom Wallet 
+For a `Wallet`, Anchor only provides a `Nodejs` wallet. But since we want our code to run in the browser, we either need to provide a `keypair` or a mapping to a wallet provider, such as Phantom wallet. For ease of simplicity, I chose Phantom Wallet for the wallet provider. `WalletAdaptorPhantom` simply maps the Phantom functions to what Anchor loosk for:
+
+```js
+// WalletAdaptorPhantom
+// app\src\lib\helpers\wallet-adapter-phantom.ts
+
+export class WalletAdaptorPhantom {
+	constructor() {
+        if(!window.solana.isConnected) throw new Error("Connect to Phantom first");
+        return;
+		this.publicKey = window.solana.publicKey;
+	}
+
+	async signTransaction(tx: Transaction): Promise<Transaction> {
+		const signedTransaction = await window.solana.signTransaction(tx);
+		return signedTransaction;
+	}
+
+	async signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
+		const signedTransactions = await window.solana.signAllTransactions(transactions);
+		return signedTransactions;
+	}
+
+	get publicKey(): PublicKey {
+		return window.solana.publicKey;
+	}
+}
+
+```
+
+Which means making a wallet essentially becomes:
+
+```js
+// anchorClient.js
+const wallet = new WalletAdaptorPhantom()
+```
+
+...with some fallback in case Phantom isn't the wallet of choice. The user has the option of passing in a keypair, or the code will generate a random keypair for use as a backup. In production, users will want to use a wallet such as Phantom, but in Dev mode we can use made up keys, because we can call `airDrop(publicKey)` to fund our accounts.
+
+So now that we have a connection, and a wallet we get a provider, and with the provier we get a `program` rpc client, and we can make out calls. Phew!
+
+The rest of the app integrates both `initialize` and `makePost` as well as `solana-web3.js` calls to interact with the program.  
 
 ## SvelteKit
 
-Setup and focus only on the Anchor RPC and Solana-Web3.js portions of the client side code.
+After setup and focusing on the Anchor RPC and Solana-Web3.js portions of the client side code, we can see a bit of the Svelte Setup, which is pretty standard and easy from their website:
 
 The Svelte [setup](https://kit.svelte.dev/docs#introduction-getting-started) is simply:
 
@@ -628,59 +671,15 @@ To use anchor from javascript, we import the anchor library:
 npm install @project-serum/anchor --save
 ```
 
-Then we'll create an Anchor helper script:
+There are a few gotchyas that you might run into while trying to use the solana or anchor libraries in client side browser code.
 
-```js
-// anchor.js
-// import the Anchor library
-import * as anchor from '@project-serum/anchor';
-// Read the generated IDL
-import idl from '../target/idl/solblog.json';
-
-// Configure the local cluster on nodejs
-anchor.setProvider(anchor.Provider.local());
-
-// Address of the deployed program.
-const programId = new anchor.web3.PublicKey('3v1Y5wFi4fn3wij7W6hJztdYoLgVqR9a4n8ARpaGNqW9');
-
-// Generate the program client from IDL.
-const program = new anchor.Program(idl, programId);
-
-export async function initialize() {
-	// Execute the RPC.
-	await program.rpc.initialize();
-	console.log('Successfully intialized');
-}
-
-```
-
-Now all we need to do in javascript to call our `initialize` RPC function is 
-
-```js
-import { initialize } from './anchor.js'
-
-// other front-end code here
-
-await initialize()
-
-```
-
-Let's put the `initialize()` function somewhere in our Svelte app, deploy the Solana program to the DevNet, and check to see that it initializes as we plan!
-
-To keep things simple, I will just paste this in the index of our front-end, in `index.svelte`
-
-```js
-	import { initialize } from '$lib/anchorClient.js';
-	import { onMount } from "svelte";
-
-	onMount(async()=>{
-		await initialize()
-	})
-```
+### Gotchya #1 - Buffer not defined
 
 Since Anchor uses borsh, there is a small hack we need to add in order to get the Global varibale to work. In Svelte, if we paste something in our page layouts, it'll apply to all layouts, so we'll add our hack here to make things work with the imported Anchor library:
 
 ```js
+// app\src\routes\__layout.svelte
+
 	import { onMount } from 'svelte';
 
 	import Header from '$lib/header/Header.svelte';
@@ -694,61 +693,58 @@ Since Anchor uses borsh, there is a small hack we need to add in order to get th
 	});
 ```
 
-Before we can use the Anchor RPC we need to set the provider
+### Gotchya #2 - import in onMount()
 
-As we can see from [the code](https://github.com/project-serum/anchor/blob/master/ts/src/provider.ts#L20) we need 3 things to configure a provider:
-
-1. A Solana connection, which we can get from [web3.js](https://solana-labs.github.io/solana-web3.js/)
-2. A wallet, which we can get from anchor.Wallet(keypair) by passing in an airdrop funded keypair
-3. Confirm options, which are, well, optional.
-
-We can re-use some of the code setup for the deployment of our program code, which also used web3.js and the connection.
-
-Our client code gets a bit beefier as we add the above features:
+The other issue is the solana / anchor code is NOT isomorphic, which means it doesn't play equally nicely in Nodejs and the browser. The way to force front ends like Svelte to use the Browser version only (and skip the whole Server Side Rendering, or SSR) is to `import` in the browser side code, in Svelte's case, in onMount()
 
 ```js
-// re-use the utilities from our deploy setup
-import solConfigFile from "../../../deploy/solana-config.json";
-import Solana from "../../../deploy/solana.js"
-import keyfile from "../../../deploy/payer-keypair.json"
+// any file where you want solana libraries to work in the browser
+	import { loadAnchorClient } from '$lib/helpers/utils';
 
-// get a Solana connection from our Devnet configuration
-const networks = JSON.parse(fs.readFileSync(solConfigFile, 'utf8'));
-let config = networks.development.config;
-let solana = new Solana(config);
-let connection = solana.connection
-
-// convert the keyfile.json to a Keypair object
-let keypair = Solana.getSigningAccount(keyfile)
-const wallet = new anchor.Wallet(keypair)
+	onMount(async () => {
+		await loadAnchorClient();
+  })
 
 ```
 
-Now we can use these factor to [generate an Anchor provider](https://github.com/project-serum/anchor/blob/master/ts/src/provider.ts#L20):
+where 
+
 
 ```js
-    const opts = {
-        preflightCommitment: "recent",
-        commitment: "recent",
-    };
+export const loadAnchorClient = async () => {
+	let AnchorBlogLibrary = await import('$lib/anchorClient');
+	anchorClient.update((_) => new AnchorBlogLibrary.default()); // establish our Solana connection & load our little library helpers
+};
 
-    const provider = new Provider(connection, wallet, opts);
 ```
 
-This is nice because when we switch our provider to "mainnet" for production, all of our connection code is already setup and ready to go. 
+Embedding loading of our anchor Client into the Browser side ensires that the browser version of any non-isomorphic libraries gets loaded, and we don't get any nasty errors.
 
-## Creating Account Address Keypairs
+## Summary of Account Address Keypairs
 
-There are a number of keypairs that are used throughout this whole process:
+There are a number of keypairs that are used throughout this whole process, and it can get a bit confusing:
 
 1. ProgramId (saved in ./target/deploy/solblog-keypair.json)
-2. Program's authority: Pays to deploy and upgrade the program
-3. Transaction fee payers (can't be the same as the program authority?)
-4. The blog posting authority (could be the same as payer)
-5. The Blog Account (key is used as address only)
+2. Program's authority: Pays to deploy and upgrade the program. it's the wallet provider (program.wallet.publicKey)
+3. Transaction fee payers (can be the same as the program authority, though it could be different too)
+4. The blog posting authority (often the same as payer & authority)
+5. The Blog Account (key is used as address only, the programId actually OWNS this account. Once initialized, the private key is useless because the account is owned by the programId and only the programId can edit the account)
 
-ProgramId is created during the first `anchor build` 
+Recall that ProgramId is created during the first `anchor build` 
 
 Program upgrade authority keys are creates and funded during the first deploy call `npm run deploy` in `deploy.js`
 
-While we are there we can create a 
+The BlogAccount key is created on the fly during intilization, but if there was a reason you wanted to pick your key, it *could* be passed in, but that's pretty extra.
+
+## Running the App
+
+In the end, navigating to `./app` and running `npm run dev` will start up the Svelte App and get you to the home screen.
+
+```
+  // CLI
+
+  $ npm run dev
+
+```
+
+Open up your browser to `http://localhost:3000` and play around!
