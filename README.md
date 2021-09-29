@@ -80,6 +80,8 @@ The folders we are interested in the most to start are:
 By default, Anchor has put some basic starting code in there for us.
 
 ```rust
+// programs\solblog\src\lib.rs
+
 use anchor_lang::prelude::*;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
@@ -127,7 +129,7 @@ As that builds (it'll take a minute), watch your target folder as it is pretty e
 |   └── rls
 ```
 
-Watch how the target folder changes once buidl completes it is a bit beefier, and built:
+Watch how the target folder changes once build completes it is a bit beefier:
 
 ```
 |
@@ -147,17 +149,20 @@ Our newly generated code public key is in that new .`/target/deploy` folder, go 
 To show our program public key which we will use as out id, simply run:
 
 ```cli
+// CLI
 solana address -k ./target/deploy/solblog-keypair.json
 ```
 
 Which shows us out unique key:
 
 ```
+// CLI
 // yours will look different, that's ok
+
 $  SoMeKeyThatIsUniqueTOmyPROGRAM
 ```
 
-If you're following along in this tutorial repo, I've placed a shortcut to this script in the package.json file, so you can simply run `npm run show-key` in the terminal (as long as it's WSL2/Linux!)
+If you're following along in this tutorial repo, I've placed a shortcut to this script in the `package.json` file, so you can simply run `npm run show-key` in the terminal (as long as it's WSL2/Linux --  the rust toolchain doen't work in Windows).
 
 Copy-and=paste your key and replace that default `declare_id` placeholder:
 
@@ -165,22 +170,29 @@ Copy-and=paste your key and replace that default `declare_id` placeholder:
 declare_id!("SoMeKeyThatIsUniqueTOmyPROGRAM");
 ```
 
-We will also need to include this same Program ID in the client side next, in our `app\src\lib\anchor.js` 
+We will also need to include this same Program ID in the client side, in our `app\src\lib\anchorClient.js` 
 
 ```js
+// app\src\lib\anchorClient.js
+
 // programId is the program public key, SoMeKeyThatIsUniqueTOmyPROGRAM
 const program = new anchor.Program(idl, programId, provider);
 ```
 
-We will get to that part once we build the client side. For now, let's finish taking a look at the Rust code.
+We will get to that part once we build the client side. My only poitn at this time is to emphasize that the client side in javascript must match the Program side in Rust.  For now, let's finish taking a look at the Rust code.
 
-<img src="tutorial-graphics\program-block.svg" width="50%" height="auto">
+<img src="tutorial-graphics\program-block.svg" width="40%" height="auto">
 
-The next code block under `#[program]` is our program's functions, how we make the program do anything.
+The next code block under `#[program]` is our program's functions, how we make the program do anything. The function names here are lowercase snake_case.
 
-<img src="tutorial-graphics\Accounts.svg" width="50%" height="auto">
+<img src="tutorial-graphics\Accounts.svg" width="40%" height="auto">
 
-The code block under `#[derive(Accounts)]` is a struct that enables us to access fields from the account struct (which is non-existant at this point). So let's create it:
+Notice the `#[derive(Accounts)]` struct is the same name as in the `program`, but in `camelCase` (whereas `snake_case` is used in program above). 
+
+The next code block under `#[derive(Accounts)]` is a going to be struct that describes the account itself and enables us to access fields from the account struct (which is non-existant at this point). Let's create it:
+
+
+<img src="tutorial-graphics\AccountsRUST.svg" width="40%" height="auto">
 
 ```rs
 #[account]
@@ -190,7 +202,7 @@ pub struct BlogAccount {
 }
 ```
 
-We create the third style code block, which is an Account struct which is a Solana account that holds out data. We will save 2 pieces of data to this account: 
+We created the third style code block, which is an Account struct which is a Solana account that holds out data. We will save 2 pieces of data to this account: 
 
 1. blog `authority`: you need to have this keypair in order to make posts,
 2. `latest_post`: the, well, the lastest blog post. 
@@ -201,17 +213,17 @@ Now we have the three Anchor blocks we need to make out blog:
 
 But right now out program doesn't do anything, because our program methods are empty.
 
-### initialize
+### The `initialize()` function
 
 In `initialize` we want to set our blog account `authority`. We will set `authority` to the same public key as the keys that signed the transaction. 
 
 BUT, in order for us to have access to `authority` in `initialize()` we need:
 
-1. BlogAccount must be a created account [todo]
-3. BlogAccount must paid for by someone [todo]
-4. BlogAccount must have enough space allocated to store our data [todo]
-4. `initialize` must have access to the `authority` field on BlogAccount [todo]
-6. `authority` must sign the `initialize` tranaction request [todo]
+1. BlogAccount must be a created account
+3. BlogAccount must paid for by someone 
+4. BlogAccount must have enough space allocated to store our data 
+4. `initialize` must have access to the `authority` field on BlogAccount 
+6. `authority` must sign the `initialize` tranaction request
 
 Anchor makes this easy for us using their macros:
 
@@ -221,18 +233,18 @@ pub struct Initialize<'info> {
     #[account(
         init, // 1. Hey Anchor, initialize an account with these details for me
         payer = authority, // 2. See that authority Signer (pubkey) down there? They're paying for this 
-        space = 8 // 3.A all accounts need 8 bytes for the account discriminator prepended to the account
-        + 32 // 3.B authority: Pubkey needs 32 bytes
-        + 566 // 3.C latest_post: post bytes could need up to 566 bytes for the memo
+        space = 8 // 3.A) all accounts need 8 bytes for the account discriminator prepended to the account
+        + 32 // 3.B) authority: Pubkey needs 32 bytes
+        + 566 // 3.C) latest_post: post bytes could need up to 566 bytes for the memo
         // You have to do this math yourself, there's no macro for this
     )]
     pub blog_account: Account<'info, BlogAccount>, // 1. <--- initialize this account variable & add it to Context.accounts.blog_account can now be used above in our initialize function
-    pub authority: Signer<'info>, // 6. <--- let's name the account that signs this transaction "authority" and make it mutable so we can set the value to it in `initialize` function above
+    pub authority: Signer<'info>, // 5. <--- let's name the account that signs this transaction "authority" and make it mutable so we can set the value to it in `initialize` function above
     pub system_program: Program<'info, System>, // <--- Anchor boilerplate
 }
 ```
 
-The `#[account]` macros in `#[derive(Accounts)]` wire up all the connections we need in order to use `blog_account` and `authority` in our `initilize` function:
+The `#[account]` macros in `#[derive(Accounts)]` wire up all the connections we need in order to use `blog_account` and `authority` in our `initilize` function. So now we can use `blog_account` and `authority` in our function:
 
 ```rs
 #[program]
@@ -250,7 +262,7 @@ pub mod solblog {
 
 Once Anchor has helped us `initilize` our account and set the blog `authority` now we want to actually save some data to our BlogAccount. We follow similar steps:
 
-First we create our Anchor glue by writing our `#[derive(Accounts)]` struct. Again, we want access to `blog_account` so we need to include that. We are changing `latest_post` so `blog_account` needs to be mutable, hence the `#[account(mut)]` but we also need for the transaction to be signed by the blogger, so it also needs to include `authority` as a `Signer`. The result looks like this:
+First we create our Anchor glue by writing an additional `#[derive(Accounts)]` struct. Again, we want access to `blog_account` so we need to include that. We are changing `latest_post` so `blog_account` needs to be mutable, hence the `#[account(mut)]` but we also need for the transaction to be signed by the blogger, so it also needs to include `authority` as a `Signer`. The result looks like this:
 
 ```rs
 #[derive(Accounts)]
@@ -299,7 +311,7 @@ First we take our `new_post` as an argument to the function:
 new_post: Vec<u8> // <--- our blog post data
 ```
 
-Our blog posts are going to be Strings, but we don't know how long these strings are going to be. Yes, we could pad them to a certain size, but a String is really just an array of bytes. In Rust we can describe our array of bytes as a Rust Vector of u8 bytes (`Vec<u8>`), because UTF8 strings are basically just [an array of u8 bytes](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8). This will make our Rust life easier as we don't have to worry about unknown lengths in Rust, plus we can easily convert UTF8 strings to u8 arrays in javascript by using UInt8Array type. So it's a `Vec<u8>`.
+Our blog posts are going to be Strings, but we don't know how long these strings are going to be. Yes, we could pad them to a certain size, but a String is really just an array of bytes. In Rust we can describe our array of bytes as a Rust Vector of u8 bytes (`Vec<u8>`), because UTF8 strings are basically just [an array of u8 bytes](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8). This will make our Rust life easier as we don't have to worry about unknown lengths in Rust, plus we can easily convert UTF8 strings to u8 arrays in javascript by using [UInt8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) type. So it's a `Vec<u8>`.
 
 Next we take the `Vec<u8>` and convert it to a String slice (`&str`) with a bit of error handling included, in case we don't get valid UTF8:
 
@@ -317,9 +329,9 @@ Lastly, we print the blog post to the Program Log:
 	msg!(post); // msg!() is a Solana macro that prints string slices to the program log, which we can grab from the transaction block data
 ```
 
-The reason we print to the program log is: our BlogAccount only saves the latest post... so what if we want to see previous posts? We can simple pull up prevously saved logs and we'll have it. Alternatively we could create an Account for every post, but that's a lot of "costly" overhead for very little benefit, whereas asaving to the Program Log is Transaction priced and we only need to pay for one account (which is super cheap).
+The reason we print to the program log is: our BlogAccount only saves the latest post... so what if we want to see previous posts? We can simply pull up prevously saved logs and we'll have it. Alternatively we could create an Account for every post, but that's a lot of "costly" overhead for very little benefit, whereas asaving to the Program Log is "Transaction priced" ($0.00025) and we only need to pay for one account (which is super cheap, but why pay more?).
 
-Lastly, we grab the `accounts` from the context (`ctx`) and pick `blog_account` as the one we're going to use (we only have one, but you could have more) so we can also save the most recent post to the Account (BlogAccount):
+Lastly, we grab the `accounts` from the context (`ctx`) and pick `blog_account` as the one we're going to use (we only have one, but you could have had more) so we can also save the most recent post to the Account (`BlogAccount`):
 
 ```rs
 	let b_acc = &mut ctx.accounts.blog_account;
@@ -340,41 +352,44 @@ Make sure you run anchor build in your project's root folder, anchor will take c
 
 Now that out Rust Program has been written with the help of Anchor, it's time to deploy to the Devnet.
 
-To deploy the anchor program on devnet, we do need a small script to setup some keys, fund via airdrop, then use anchor deploy to deploy to the devnet.
+To deploy the anchor program on devnet, a small helper script to setup some keys, fund via airdrop, then use anchor deploy to deploy to the devnet would sure be great. That's included with this tutorial!
 
-For this tutorial, I borrow heavily from the auto-generated [`Decentology`](https://dappstarter.decentology.com/) DappStarter to generate the deploy code is saved at `./deploy.js` with a shortcut script in `package.json` which is convenienlty run by:
+For this tutorial, I borrow heavily from the auto-generated [`Decentology`](https://dappstarter.decentology.com/) DappStarter to generate the deploy code is saved at `./deploy.js`. You can run the script using `node` or use the shortcut script in `package.json` which is convenienlty run by:
 
-	npm run deploy
+	// CLI
+	$ 	npm run deploy
 
 	(or)
 
-	node ./deploy.js
+	$	node ./deploy.js
 
 The deploy script creates a new keypair to pay for the deployment for you, funds it with some SOL, and deploys it to the Devnet. 
 
-Since this tutorial is about Anchor, the key Anchor points in that `./deploy.js` script is:
+Since this tutorial is about Anchor, I'll gloss over some of the finer details in that `deploy.js` script, and jump straight to the juicy Anchor points, which are:
 
 ```js
 // ./deploy.js
 
-	method = ["deploy"]
+//... [snip]
 
-	//... [snip]
+method = ["deploy"]
 
-    spawn.sync(
-        "anchor",
-        [
-            ...method,
-            "--provider.cluster",
-            "Devnet",
-            "--provider.wallet",
-            `${programAuthorityKeypairFile}`,
-        ],
-        { stdio: "inherit" }
-    )
+//... [snip]
+
+spawn.sync(
+	"anchor",
+	[
+		...method,
+		"--provider.cluster",
+		"Devnet",
+		"--provider.wallet",
+		`${programAuthorityKeypairFile}`,
+	],
+	{ stdio: "inherit" }
+)
 ```
 
-This first run through, the deploy script uses `anchor deploy` whereas in subsequent deploys with the same program, it will use 
+This first run through, the deploy script uses `anchor deploy` whereas in subsequent deploys with the same program, it will use `anchor upgrade` with all the required flags included for convenience:
 
 ```js
 // ./deploy.js
@@ -397,11 +412,11 @@ This first run through, the deploy script uses `anchor deploy` whereas in subseq
 
 ```
 
-That is because on subsequent deploys, we want Anchor to upgrade our program using the same programId and program authority so everything except the code stays the same. This is important because we want our program address to stay the same so users don't have to change to a new address every time we upgrade our software. 
+That is because on subsequent deploys, we want Anchor to upgrade our program using the same `programId` and program authority so everything except the code stays the same. This is important because we want our program address to stay the same so users don't have to change to a new address every time we upgrade our software. 
 
-At the end, the `deploy.js` script will also save your keys to the dapp-starter style .json file for easy reference. But you'll see that I have also saved the keyfiles as .json bytes so they can be used by Anchor commands in the command line, since we use Anchor via CLI and not programmatically.
+At the end, the `deploy.js` script will also save your keys to the dapp-starter style .json file for easy reference. But you'll see that I have also saved the keyfiles as `.json` bytes so they can be used by Anchor commands in the command line, since we use Anchor via CLI and not programmatically.
 
-When you run this `deploy.js` code, you can see that Anchor has filled in our basic starting point with all the necessary glue to make a Solana program work, and now it's compiled ready for the blockchain as a 149kb in size file, and real life deployment would costs about 2 SOL to deploy.
+When you run this `deploy.js` code, you can see the result is that Anchor has filled in our basic starting point with all the necessary glue to make a Solana program work, and now it's compiled ready for the blockchain as a 149kb in size file, and real life deployment would costs about 2 SOL to deploy.
 
 ```
 |
@@ -416,15 +431,188 @@ Let's build the client front end to interface with our program!
 
 ## Client Setup
 
-Anchor is every bit about the client side as it is about the program side.
+Anchor is every bit about the client side as it is about the program side. Our program is complete and our IDL is built, so all that is left is for us to build a front end to use it all.
 
-Since everything on the Solana program side must match configuration on the client side, we will start by pasting our program key into our client code, so the client knows which program it's talking to.
+Although I have chosen to use Svelte for this, any front end can be used. We will put our anchor client code in a file named `anchorClient.js` which can be used by any framework or pure vanilla JS.
 
-In `app/client.js` we need the following Anchor code to setup a basic remote procedure call (RPC) javascript client.
+So I'll get straight to the `anchorClient.js` setup and then cover the SvelteKit integration for those who wish to stick around for that part. 
 
-Since this tutorial is about Anchor, I'll quickly gloss over the SvelteKit setp and focus only on the Anchor RPC portion of the client side code.
+## Building our anchorClient
 
-SvelteKit makes our life easier to streamline the front end development, strawman our blog, and make it easy to read the IDL file.
+We have our IDL.json which describes how we use our app, but we need to build some handlers to call the remote procedure calls (RPCs).
+
+### `initialize()`
+
+
+In order to call out initialize function in our program, we first need an equivalent fuction in javascript. It looks like this:
+
+```js
+// anchorClient.js
+// location: app\src\lib\anchorClient.js
+
+import * as anchor from '@project-serum/anchor'; // includes https://solana-labs.github.io/solana-web3.js/
+const { SystemProgram } = anchor.web3; // Added to initialize account
+
+// .. [snip]
+
+async initialize() {
+	// generate an address (PublciKey) for this new account
+	let blogAccount = anchor.web3.Keypair.generate(); // blogAccount is type Keypair 
+
+	// Execute the RPC call
+	const tx = await this.program.rpc.initialize({
+		// Pass in all the accounts needed
+		accounts: {
+			blogAccount: blogAccount.publicKey, // publickey for our new account
+			authority: this.provider.wallet.publicKey, // publickey of our anchor wallet provider
+			systemProgram: SystemProgram.programId // just for Anchor reference
+		},
+		signers: [blogAccount] // blogAccount must sign this Tx, to prove we have the private key too
+	});
+	console.log(
+		`Successfully intialized Blog ID: ${blogAccount.publicKey} for Blogger ${this.provider.wallet.publicKey}`
+	);
+	return blogAccount;
+}
+
+```
+
+There are a few references to assets that we haven't coded in yet, like `this.program` but we'll make that in our setup constructor.
+
+The RPC nature of Anchor means that all our functions are exposed through `program.rpc.<method name>`. So our make_post call looks very similar:
+
+```js
+// anchorClient.js
+// location: app\src\lib\anchorClient.js
+
+async makePost(post, blogAccountStr) {
+	// convert our string to PublicKey type
+	let blogAccount = new anchor.web3.PublicKey(blogAccountStr);
+
+	const utf8encoded = Buffer.from(post); // anchor library doesn't like UInt8Array, so we use Nodejs buffer here
+
+	// Execute the RPC.
+	const tx = await this.program.rpc.makePost(
+		// input must be compatible with UTF8 Vector in rust
+		utf8encoded,
+		// now pass the accounts in
+		{
+			accounts: {
+				blogAccount: blogAccount, // needs to be the same publicKey as init, or it won't work
+				authority: this.program.provider.wallet.publicKey // needs to be the same publicKey as init, or it won't work
+			},
+			signers: [this.program.provider.wallet.payer] // needs to be the same keyPAIR as init, or it won't work
+		}
+	);
+	console.log(
+		`Successfully posted ${post} to https://explorer.solana.com/address/${blogAccount}?cluster=devnet`
+	);
+	return tx;
+}
+
+```
+
+In order for these calls to work, we need this `this.program` that you see used everywhere, so let's take care of that.
+
+### `program.*`
+
+We create program using a call to the class constructor:
+
+```js
+// anchorClient.js
+// location: app\src\lib\anchorClient.js
+export default class AnchorClient {
+	constructor({ programId, config, keypair } = {}) {
+		this.programId = programId || getDevPgmId();
+		this.config = config || solConfigFile.development.config;
+		this.connection = new anchor.web3.Connection(this.config.httpUri, 'confirmed');
+		console.log('\n\nConnected to', this.config.httpUri);
+
+		const wallet =
+			window.solana.isConnected && window.solana?.isPhantom
+				? new WalletAdaptorPhantom()
+				: keypair
+				? new anchor.Wallet(keypair)
+				: new anchor.Wallet(anchor.web3.Keypair.generate());
+		// maps anchor calls to Phantom direction
+		this.provider = new anchor.Provider(this.connection, wallet, opts);
+		this.program = new anchor.Program(idl, this.programId, this.provider);
+	}
+
+```
+
+Let's dissect what's going on here. 
+
+In order to start up anchor.program, we need three things:
+
+1. IDL
+2. ProgramID, and
+3. Wallet Provider
+
+Our IDL (json file) is saved alongside our rust program at:
+
+```
+|
+├── target
+|   └── idl
+|      └── solblog.json
+```
+
+In SvelteKit, which uses Vite, we can import the `json` into our code by simply doing:
+
+```js
+// anchorClient.js
+
+// Read the generated IDL
+import idl from '../../../target/idl/solblog.json';
+```
+
+If you're using a different framework for front end, you may need to change this. But for this tutorial, it works.
+
+Second, our programId is the public key of our program keypair that we generated when we ran `anchor build`, remember that?
+
+```
+|
+├── target
+|   └── deploy
+|           solblog-keypair.json
+```
+
+Similar to the previous `json` file, we can bring this `programId` into our code by importing it:
+
+```js
+// anchorClient.js
+
+import solblog_keypair from '../../../target/deploy/solblog-keypair.json';
+
+// ... [snip]
+
+const getDevPgmId = () => {
+	// get the program ID from the solblog-keyfile.json
+	let pgmKeypair = anchor.web3.Keypair.fromSecretKey(new Uint8Array(solblog_keypair));
+	return new anchor.web3.PublicKey(pgmKeypair.publicKey); // Address of the deployed program
+};
+```
+
+When you want to use a program in production, instead of calling `getDevPgmId()` you would simply pass in the `programId` to the constructor.
+
+Lastly, we need a Wallet Provider. Anchor gives us the option of making a provider using:
+
+```js
+new anchor.Provider(connection, wallet, opts);
+```
+
+Connection is straightforward enough, we just use the Solana Web3 library and pass in one of the Solana network endpoints, such as devnet:
+
+```js
+connection = new anchor.web3.Connection("https://api.devnet.solana.com", 'confirmed');
+```
+
+For a Wallet, Anchor only provides a Nodejs wallet. But since we want our code to run in the browser, we either need to provide a keypair or a mapping to a waller provider, such as Phantom wallet. For ease of simplicity, I chose Phantom Wallet 
+
+## SvelteKit
+
+Setup and focus only on the Anchor RPC and Solana-Web3.js portions of the client side code.
 
 The Svelte [setup](https://kit.svelte.dev/docs#introduction-getting-started) is simply:
 
@@ -482,7 +670,7 @@ Let's put the `initialize()` function somewhere in our Svelte app, deploy the So
 To keep things simple, I will just paste this in the index of our front-end, in `index.svelte`
 
 ```js
-	import { initialize } from '$lib/anchor.js';
+	import { initialize } from '$lib/anchorClient.js';
 	import { onMount } from "svelte";
 
 	onMount(async()=>{
@@ -564,263 +752,3 @@ ProgramId is created during the first `anchor build`
 Program upgrade authority keys are creates and funded during the first deploy call `npm run deploy` in `deploy.js`
 
 While we are there we can create a 
-
-## Signers
-
-Any keypair in our program.provider.wallet is already a signer and doesn't have to be explicitly added as a [signer] in our RPC method call.
-
-## Basic Blog
-
-We are going to build a simple blog using Solana. Data in Solana is stored in accounts, and each account has a list of all the transactions made on that account.
-
-So let's start by having Anchor make an account for us to save the blog data in, and then post a transaction to make out first post!
-
-## Relating data to an account address
-
-In our blog design we have one data storage account, and this account address that will hold the most recent blog post. To get previous transactions for this address, we need to first look up all signature for this address backwards in time. Luckily for us, the Solana javascript SDK has a feature for this
-
-```ts
-// https://solana-labs.github.io/solana-web3.js/classes/Connection.html#getSignaturesForAddress
-
-connection.getSignaturesForAddress(address: PublicKey, options?: SignaturesForAddressOptions, commitment?: Finality): Promise<ConfirmedSignatureInfo[]>)
-```
-
-Once we have the signatures, we can get the transaction details using a similar:
-
-Taking a look at the [ConfirmedSignatureInfo[]](https://solana-labs.github.io/solana-web3.js/modules.html#ConfirmedSignatureInfo) array, we can see the memo is in there
-
-```ts
-let firstMemo = confirmedSignatureInfo[0].memo
-```
-
-```ts
-// https://solana-labs.github.io/solana-web3.js/classes/Connection.html#getTransaction
-
-connection.getTransaction(signature: string, opts?: { commitment?: Finality }): Promise<null | TransactionResponse>
-```
-
-From the transaction, we can get
-
-BUT, there is an SPL (Solana Programming Library --  preprogrammed and deployed Programs we can use in our own program) called "memo program" that we can use to store 32 to 566 bytes of data associated with the transaction. To make a Twitter clone, we only need 140 bytes to store our 140 characters, so this could work for us! Plus gives us room to cover a few emojiis ;)
-
-If we check out [the docs](https://solana-labs.github.io/solana-web3.js/modules.html#ConfirmedSignatureInfo), we can get memo details from `ConfirmedSignatureInfo` type of [a connection](https://github.com/solana-labs/solana-web3.js/blob/4883fed/src/connection.ts#L1949):
-
-```ts
-ConfirmedSignatureInfo: { blockTime?: number | null; err: TransactionError | null; memo: string | null; signature: string; slot: number }
-```
-
-So all we need to do is use 
-
-1. The SPL Memo program [via [Cross-Program Invocations](https://docs.solana.com/developing/programming-model/calling-between-programs#cross-program-invocations), which we'll cover shortly], and 
-2. Get the transaction for of each signature related to the account.
-3. Read back the memo for each transaction using our Solana connection.
-
-So let's get coding!
-
-## Invoking a CPI
-
-We're going to save our simple blog posts using the [solana programming library memo program](https://spl.solana.com/memo). The memo program is saved to this address:
-
-```
-[MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr](https://explorer.solana.com/address/MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr) 
-```
-
-Taking a look at the Memo rust code tells us how we should go about interacting with it:
-
-```rs
-pub fn process_instruction(
-    _program_id: &Pubkey,
-    accounts: &[AccountInfo], // <-------- Our signer account goes here
-    input: &[u8],  // <------------------- Our memo goes here
-) -> ProgramResult {
-
-	// ...snip
-
-	let memo = from_utf8(input).map_err(|err| { // <---- Our memo checked here
-		// ...snip
-    })?;
-    msg!("Memo (len {}): {:?}", memo.len(), memo);   // <----- Our memo saved here
-
-	// ...snip
-
-```
-
-So we need a 1) CPI and a 2) Signing account to hand to the Memo program.
-
-We need to change our current library code from `initialize` to something more blog-like, such as `post` or `post_memo` or `make_post`. It can be whatever we like, let's go with `make_post` as that's pretty clear (verb and a noun)
-
-We also need to increase the size of our account storage to store the authority publicKey (32 bytes) and our post (566 bytes)
-
-All accounts need at least [8 bytes](https://docs.rs/anchor-lang/0.16.1/anchor_lang/attr.state.html) for the account [Discriminator](https://docs.rs/anchor-lang/0.16.1/anchor_lang/trait.Discriminator.html). So add 8 bytes to however much space you want to use i your account. 
-
-```rs
-#[account(
-	//...
-
-	space = 8 // 8 bytes for the account discriminator prepended
-	+ 32 // authority: Pubkey needs 32 bytes
-	+ 8 // data: u64 needs 8 bytes
-
-	//...
-
-```
-
-Before we get into calling the Memo program via CPI, let's set up our program to simply update my_account with the latest blog post, we can check to make sure everything is working with our client code, and then we'll improve it further by adding the trail of memos via CPI.
-
-Once we make these changes to our account, after another `anchor build` we can see the new IDL contains our new function!
-
-```
-|
-├── target
-|   └── idl
-|           solblog.json   <--- now has make_post
-```
-
-Since our IDL is updated, we can now use `rpc.makePost(data)` to call our program and save the data to the account.
-
-Let's give that a shot!
-
-Because we've added actual account data to our Rust code, we need to now pass in that Account data from our javascript client too. We need to use the same account info (keypair and whatnot) in both functions.
-
-```js
-// app\src\lib\anchor.js
-
-export async function initialize() {
-	// Execute the RPC.
-	await program.rpc.initialize({
-		accounts: {
-			blogPostAccount: provider.wallet.publicKey, // we're re-using our wallet keys for simplicity, but you can pass in any keypair you like
-			systemProgram: SystemProgram.programId // just for Anchor reference
-		},
-		signers: [payerKeypair] // this is the authority
-	});
-	console.log('Successfully intialized');
-}
-
-export async function makePost(number) {
-	// Execute the RPC.
-	await program.rpc.makePost(new anchor.BN(number), {
-		accounts: {
-			blogPostAccount: provider.wallet.publicKey, // must be the same keypair as the one who initialized this account
-		},
-		signers: [payerKeypair]
-	});
-	console.log('Successfully posted');
-}
-```
-
-and call it from anywhere within our app
-
-```js
-// app\src\routes\index.svelte
-await anchor.makePost(123)
-
-```
-
-Run the svelte app to see if you get any errors in the console.log
-
--------
-
-We are going to add the Cross-program invokation (CPI) to our Anchor rust app in three steps
-
-1. Add the [memo crate](https://crates.io/crates/spl-memo) to the program's Rust `Cargo.toml` and add the use statement in the header code block of `lib.rs`:
-
-	```md
-	// programs/solblog/Cargo.toml
-
-	[dependencies]
-	spl-memo = "3.0.1"
-	```
-
-	```rs
-	// lib.rs
-	
-	use spl-memo
-	```
-
-2. Add `post_memo` to the first code block, `pub mod solblog {...`
-
-    ```rs
-	// lib.rs
-
-	pub fn post_memo(ctx: Context<MakePost>,
-    new_memo: String
-    ) -> ProgramResult {
-		// ... we will add CPI code in here
-        Ok(())
-    }
-	```
-
-3. Add corresponding `PostMemo` struct to the second block 
-
-	```rs
-	// lib.rs
-
-	#[derive(Accounts)]
-	pub struct PostMemo<'info> {
-
-	}
-	```
-
-Now that we have the basic Anchor structures and macros in place, we can fill them up with CPI code. 
-
-First in order to refer to both our BlogAccount and the Memo Program in our function in the first block, we need to have the Anchor macro create references for us in our struct for the function:
-
-
-	```rust
-	// lib.rs
-
-	#[derive(Accounts)]
-	pub struct PostMemo<'info> {
-		#[account(mut)]
-		pub blog_account: Account<'info, Data>,
-	    pub memo_program: Program<'info, Puppet>,
-	}
-	```
- 
- Now we can use these reference in our `post_memo` function
-
-
-# Blog History
-
-But what happens when we update our latest blog post? The BlogAccount get updated to a new value... but what happens to all the old values?
-
-They are still there, in a couple of places. First of all, since we passed in our blog posts as instruction data, it's saved there.
-
-Instruction data is a bit more complicated to parse out, since not only does it have our blog post in there, but it's got all the other Solana instructions too. Luckily for us, there's an easy way to get our text.
-
-Since we sent our posts out as msg!() macros, they are also saved to the log messages.
-
-We can get these log messages from the transaction details, which we get by looking up the signature.
-
-```ts
-	let transaction = await connection.getParsedConfirmedTransaction(
-			confirmedSignatureInfo[0].signature
-		);
-	const logMessages = transaction?.meta?.logMessages;
-	const timestamp = transaction?.blockTime;
-```
-
-From there, anything with "Program log: " in front of it is the output from our msg!() macro -- in other words, out blog post!
-
-We can get the date and time from the blockTime.
-
-Wiring this all up into our Svelte app and we have a blog!
-
-The neat thing about Solana is that you can use Programs that are already deployed for your own purposes. So if you wanted to use this program to make your own blog posts, you can! It costs you NOTHING to save the program, all you have to do is pay the low Solana rent-exemption for the Account, and an even lower transaction fee.... and you've got yourself a fast, cheap, censorship resistant blog!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
