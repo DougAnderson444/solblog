@@ -18,7 +18,8 @@ There are always two parts to a Solana app -- the *on-chain* program and account
 
 <div style="background-color: white;"></div>
 
-![IDL](tutorial-graphics\IDL.svg)
+
+<img src="tutorial-graphics\IDL.svg" width="90%" height="auto">
 
 ## Anchor Versions
 
@@ -88,8 +89,7 @@ pub struct Initialize {}
 
 Let's break down what we see.
 
-![2RUST](tutorial-graphics\2RUST.svg)
-
+<img src="tutorial-graphics\2RUST.svg" width="90%" height="auto">
 After including the anchor library, the program public key has this placeholder:
 
 ```rust
