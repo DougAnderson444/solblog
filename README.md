@@ -9,6 +9,12 @@ A simple blog platform, powered by Solana with a SvelteKit front end.
 - [x] Anchor (Rust macros + IDL generation)
 - [x] Svelte & SvelteKit (JavaScript front end)
 
+YouTube video on building the Rust portion:
+
+<a href='https://youtu.be/w-n87Aq3f8k' target='_blank'>
+<img src="tutorial-graphics\youtub.png" width="35%" height="auto">
+</a>
+
 ## About
 
 This tutorial will take you from zero to functional blog.
