@@ -1,6 +1,7 @@
 # SolBlog
-
+<center>
 <img src="tutorial-graphics\solblog.svg" width="90%" height="auto">
+</center>
 
 A simple blog platform, powered by Solana with a SvelteKit front end.
 
