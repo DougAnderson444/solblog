@@ -10,7 +10,7 @@
 */
 
 // const base = 'https://api.svelte.dev';
-import * as anchor from '$lib/anchor.js';
+import * as anchor from '$lib/anchorClient.js';
 
 export async function api(request, resource, data) {
 	// user must have a blogid
