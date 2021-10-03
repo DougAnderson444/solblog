@@ -5,7 +5,7 @@
 
 	let provider; // wallet provider (ie. Phantom)
 
-	let blogId = 'FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm';
+	let blogId = 'Cbo5KxuZ6v2AvAPZKrEXJPnmKzjSyGbNBevNQyk47coh';
 	let mounted;
 	let blogAccounts;
 
@@ -36,7 +36,7 @@
 		<h1>Go to existing blogger or blog:</h1>
 		<input
 			class="new"
-			placeholder="FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm"
+			placeholder="Cbo5KxuZ6v2AvAPZKrEXJPnmKzjSyGbNBevNQyk47coh"
 			bind:value={blogId}
 		/>
 		<div class="submit">
