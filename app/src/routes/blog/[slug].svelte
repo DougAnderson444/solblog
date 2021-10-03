@@ -57,9 +57,9 @@
 
 		handleSubmitPost = async () => {
 			console.log($anchorClient);
-			const tx = await $anchorClient.makePost(value, blogId);
-			console.log({ tx });
-			postDetails.unshift({ content: [marked(value)] });
+			const signature = await $anchorClient.makePost(value, blogId);
+			console.log({ signature });
+			postDetails.unshift({ content: [marked(value)], signature });
 			posts = [...postDetails];
 		};
 		showBlogger = async () => {
