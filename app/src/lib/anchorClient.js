@@ -2,12 +2,6 @@
 import * as anchor from '@project-serum/anchor';
 // Read the generated IDL
 import idl from '../../../target/idl/solblog.json';
-
-// we can do this because svektekit/vite allows us to import json file as es modules :)
-import solConfigFile from '../../../deploy/solana-config.json';
-import keyfile from '../../../deploy/programauthority-keypair.json';
-import solblog_keypair from '../../../target/deploy/solblog-keypair.json';
-
 import { WalletAdaptorPhantom } from '$lib/helpers/wallet-adapter-phantom';
 
 const { SystemProgram } = anchor.web3; // Added to initialize account
@@ -19,19 +13,13 @@ const opts = {
 	commitment: 'recent'
 };
 
-const getDevPgmId = () => {
-	// get the program ID from the solblog-keyfile.json
-	let pgmKeypair = anchor.web3.Keypair.fromSecretKey(new Uint8Array(solblog_keypair));
-	return new anchor.web3.PublicKey(pgmKeypair.publicKey); // Address of the deployed program
-};
-
 export default class AnchorClient {
 	// you can make an anchor program without a provider
 	// then set the provider later with anchor.setProvider
 	// you just won't be able to init or makePost until a wallet provider is set up
 	constructor({ programId, config, keypair } = {}) {
-		this.programId = programId || getDevPgmId();
-		this.config = config || solConfigFile.development.config;
+		this.programId = programId;
+		this.config = config;
 		this.connection = new anchor.web3.Connection(this.config.httpUri, 'confirmed');
 		console.log('\n\nConnected to', this.config.httpUri);
 
