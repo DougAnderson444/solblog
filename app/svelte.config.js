@@ -1,5 +1,5 @@
 import preprocess from 'svelte-preprocess';
-import adapter_ipfs from 'sveltejs-adapter-ipfs';
+// import adapter_ipfs from 'sveltejs-adapter-ipfs';
 import vercelAdapter from '@sveltejs/adapter-vercel';
 
 /** @type {import('@sveltejs/kit').Config} */
