@@ -11,7 +11,9 @@ const config = {
 		// 	removeBuiltInServiceWorkerRegistration: true,
 		// 	injectPagesInServiceWorker: true
 		// }),
-		adapter: vercelAdapter(),
+		adapter: vercelAdapter({
+			outfile: '../build'
+		}),
 		// hydrate the <div id="svelte"> element in src/app.html
 		target: '#svelte'
 	}
