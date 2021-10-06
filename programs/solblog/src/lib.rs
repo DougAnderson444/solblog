@@ -15,7 +15,7 @@ pub mod solblog {
     }
 
     pub fn make_post(
-        ctx: Context<MakePost>, 
+        ctx: Context<MutateAccount>, 
         new_post: Vec<u8> // <--- our blog post data
     ) -> ProgramResult {
         let post = from_utf8(&new_post) // convert the array of bytes into a string slice
@@ -29,7 +29,16 @@ pub mod solblog {
         b_acc.latest_post = new_post; // save the latest post in the account. 
         // past posts will be saved in transaction logs 
         
-        Ok(())
+        Ok(())// return ok result
+    }
+    
+    pub fn update_bio(
+        ctx: Context<MutateAccount>, 
+        new_bio: Vec<u8> // <--- our blog post data
+    ) -> ProgramResult {
+        let b_acc = &mut ctx.accounts.blog_account;
+        b_acc.bio = new_bio; // save the latest bio in the account. 
+        Ok(()) // return ok result
     }
 }
 
@@ -41,6 +50,7 @@ pub struct Initialize<'info> {
         space = 8 // all accounts need 8 bytes for the account discriminator prepended to the account
         + 32 // authority: Pubkey needs 32 bytes
         + 566 // latest_post: post bytes could need up to 566 bytes for the memo
+        + 256 // bytes of meta data (name, about, link.in.bio, etc)
         // You have to do this math yourself, there's no macro for this
     )]
     pub blog_account: Account<'info, BlogAccount>, // <--- initialize this account variable & add it to Context and can be used above ^^ in our initialize function
@@ -50,7 +60,7 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-pub struct MakePost<'info> {
+pub struct MutateAccount<'info> {
     #[account(
         mut, // we can make changes to this account
         has_one = authority)] // the authority has signed this post, allowing it to happen
@@ -68,4 +78,5 @@ pub struct MakePost<'info> {
 pub struct BlogAccount { 
     pub authority: Pubkey,    // save the posting authority to this authority field
     pub latest_post: Vec<u8>, // <-- where the latest blog post will be stored
+    pub bio: Vec<u8>
 }
