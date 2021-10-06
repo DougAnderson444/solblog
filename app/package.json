@@ -14,7 +14,6 @@
 		"@stablelib/sha256": "^1.0.1",
 		"@sveltejs/adapter-vercel": "next",
 		"@sveltejs/kit": "next",
-		"@sveltejs/app-utils": "next",
 		"borsh": "^0.4.0",
 		"events.once": "^2.0.2",
 		"hash.js": "^1.1.7",
