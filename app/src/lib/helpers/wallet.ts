@@ -16,7 +16,7 @@ export const newWalletAdapter = (): WalletAdapter => {
 	});
 	wallet.on('disconnect', () => {
 		console.log('Disconnecting');
-		wallet.disconnect()
+		wallet.disconnect();
 		adapter.update(() => undefined);
 	});
 
@@ -24,10 +24,15 @@ export const newWalletAdapter = (): WalletAdapter => {
 };
 
 export const phantomConnect = async ({ onlyIfTrusted } = {}): Promise<void> => {
+	console.log('phantomConnect');
 	const newWallet = newWalletAdapter();
 	// eslint-disable-next-line
-	await newWallet.connect({ onlyIfTrusted }); // request
+	try {
+		await newWallet.connect({ onlyIfTrusted }); // request
+	} catch (error) {
+		// connect wallet
+	}
 	if (!newWallet.isConnected) await once(newWallet, 'connect'); // authorized
 	adapter.update(() => newWallet); // use it as adapter
-  get(anchorClient).setWallet(); // update our client to use phantom as the wallet provider
+	get(anchorClient).setWallet(); // update our client to use phantom as the wallet provider
 };

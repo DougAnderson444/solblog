@@ -141,7 +141,7 @@ export default class AnchorClient {
 		return postDetails;
 	};
 
-	getTransactionForAddress = async (publicKey, limit = 100) => {
+	getTransactionForAddress = async (publicKey, limit = 1000) => {
 		const confirmedSignatureInfo = await this.connection.getSignaturesForAddress(
 			new anchor.web3.PublicKey(publicKey),
 			{ limit }
@@ -170,11 +170,12 @@ export default class AnchorClient {
 				!instr ||
 				!(instr.type === 'createAccount' && instr.info.owner == this.programId.toString())
 			)
-				return;
+				return; // skip if it's not createAccount for this programId
 			blogAccounts.push(tx.meta.innerInstructions[0].instructions[0].parsed.info.newAccount);
 
 			return;
 
+			// no longer needed, kept for interests' sake:
 			tx.transaction.message.accountKeys.forEach((key, index, orig) => {
 				// exclude keys that dont include this programId
 				if (key.pubkey.toString() !== this.programId.toString()) return;

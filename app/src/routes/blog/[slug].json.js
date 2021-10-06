@@ -6,7 +6,7 @@ import marked from 'marked';
 
 export async function get({ params }) {
 	// we could get the dynamic slug from the parameter of get.
-	const { slug } = params;
+	let { slug } = params;
 
 	if (!slug) return;
 

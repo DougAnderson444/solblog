@@ -14,7 +14,12 @@
 
 		const getBytes = () => {
 			if (!simplemde?.value()) return '0';
-			return Buffer.from(simplemde.value(), 'utf8').length || '0';
+			let bytes = Buffer.from(simplemde.value(), 'utf8').length || '0';
+			while (bytes > 566) {
+				simplemde.value(simplemde.value().slice(0, simplemde.value().length - 2));
+				bytes = Buffer.from(simplemde.value(), 'utf8').length;
+			}
+			return bytes;
 		};
 
 		simplemde = new SimpleMDE({

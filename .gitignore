@@ -5,3 +5,4 @@ target
 **/*.rs.bk
 node_modules
 deploy/*-keypair.json
+deploy/dapp-config.json

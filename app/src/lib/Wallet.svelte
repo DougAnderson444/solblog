@@ -30,7 +30,6 @@
 
 	onMount(async () => {
 		await loadAnchorClient();
-		console.log({ disconnected });
 		if (!disconnected) await phantomConnect({ onlyIfTrusted: true }); // try to eagerly connect only if previously authorized
 		mounted = true;
 	});
@@ -91,6 +90,7 @@
 					Balance</a
 				>: {(balance / 1000000000).toFixed(5)} SOL
 				{#if balance < 50000000}
+					<br />
 					<button class="drop" on:click|preventDefault={drop}> AirDrop some SOL on DevNet </button>
 				{/if}
 			{/if}

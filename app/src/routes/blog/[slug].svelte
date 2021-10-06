@@ -21,7 +21,7 @@
 	import marked from 'marked';
 	import { loadAnchorClient } from '$lib/helpers/utils';
 
-	import { selectedNetwork, anchorClient, connected } from '$lib/stores';
+	import { selectedNetwork, anchorClient, connected, adapter } from '$lib/stores';
 
 	// post will have metadata and content
 	export let posts;
@@ -39,6 +39,7 @@
 
 	let mounted;
 	let postDetails;
+	let ownBlog;
 
 	$: blogId && showBlogger && showBlogger();
 
@@ -62,9 +63,24 @@
 			postDetails.unshift({ content: [marked(value)], signature });
 			posts = [...postDetails];
 		};
-		showBlogger = async () => {
-			$anchorClient.getBlogAuthority(blogId).then((b) => (blogger = b));
+
+		const checkOwnBlogs = async () => {
+			// check if wallet connected owns this blog (if so, show Post editor)
+			let blogAccounts = await $anchorClient.getBlogAccounts($adapter.publicKey);
+			if (blogAccounts.includes(blogId)) ownBlog = true;
 		};
+
+		showBlogger = async () => {
+			try {
+				$anchorClient.getBlogAuthority(blogId).then((b) => {
+					blogger = b;
+					checkOwnBlogs();
+				});
+			} catch (error) {
+				blogger = 'Blogger does not have an active SolBlog.';
+			}
+		};
+
 		mounted = true;
 	});
 </script>
@@ -99,33 +115,34 @@
 			>{blogId}
 		</a>
 	</h2>
-	<MarkdownEditor bind:value />
 
-	<input
-		name="post"
-		aria-label="Add blog post"
-		placeholder="+ tap to blog on-chain with Solana"
-		bind:value
-		hidden
-	/>
+	{#if $connected && ownBlog}
+		<div>
+			<MarkdownEditor bind:value />
 
-	{#if preview}
-		<div class="view" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
-			{@html value && marked(value)}
+			<input
+				name="post"
+				aria-label="Add blog post"
+				placeholder="+ tap to blog on-chain with Solana"
+				bind:value
+				hidden
+			/>
+
+			{#if preview}
+				<div class="view" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
+					{@html value && marked(value)}
+				</div>
+			{/if}
+
+			<div class="submit">
+				<label for="preview">
+					<input type="checkbox" bind:checked={preview} /> Preview Final
+				</label>
+
+				<button on:click|preventDefault={handleSubmitPost}>Post</button>
+			</div>
 		</div>
 	{/if}
-
-	<div class="submit">
-		<label for="preview">
-			<input type="checkbox" bind:checked={preview} /> Preview Final
-		</label>
-		{#if $connected}
-			<button on:click|preventDefault={handleSubmitPost}>Post</button>
-		{:else if mounted}
-			<Wallet />
-		{/if}
-	</div>
-
 	{#if posts}
 		{#each posts as post (post.signature)}
 			<div class="view" transition:scale|local={{ start: 0.7 }} animate:flip={{ duration: 200 }}>
