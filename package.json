@@ -9,7 +9,7 @@
         "chai": "^4.3.4",
         "cross-spawn": "^7.0.3",
         "mocha": "^9.0.3",
-        "build": "cd app && npm run build"
+        "build": "npm run build ./app"
     },
     "scripts": {
         "show-key": "solana address -k ./target/deploy/solblog-keypair.json",
