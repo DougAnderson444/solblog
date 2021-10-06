@@ -16,7 +16,7 @@ export default class Solana {
     constructor(config) {
         this.serviceUri = config.httpUri
         this.connection = new Connection(this.serviceUri, "confirmed")
-        console.log("\n\nConnected to", this.serviceUri)
+        console.log("\nConnected to", this.serviceUri)
     }
 
     static getPublicKey(publicKey) {
