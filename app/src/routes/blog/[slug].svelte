@@ -36,12 +36,14 @@
 	let blogger;
 
 	let showBlogger;
+	let assertOwnsBlog;
 
 	let mounted;
 	let postDetails;
-	let ownBlog;
+	let ownsBlog;
 
 	$: blogId && showBlogger && showBlogger();
+	$: $connected && blogId && assertOwnsBlog && assertOwnsBlog();
 
 	onMount(async () => {
 		await loadAnchorClient();
@@ -64,17 +66,16 @@
 			posts = [...postDetails];
 		};
 
-		const checkOwnBlogs = async () => {
+		assertOwnsBlog = async () => {
 			// check if wallet connected owns this blog (if so, show Post editor)
 			let blogAccounts = await $anchorClient.getBlogAccounts($adapter.publicKey);
-			if (blogAccounts.includes(blogId)) ownBlog = true;
+			if (blogAccounts.includes(blogId)) ownsBlog = true;
 		};
 
 		showBlogger = async () => {
 			try {
 				$anchorClient.getBlogAuthority(blogId).then((b) => {
 					blogger = b;
-					checkOwnBlogs();
 				});
 			} catch (error) {
 				blogger = 'Blogger does not have an active SolBlog.';
@@ -98,25 +99,26 @@
 </header>
 <div class="blog">
 	<h1>Solana Blog</h1>
-	{#if blogger}
-		<h2>
-			Blogger:
+	<center>
+		{#if blogger}
+			<h3>
+				Blogger:
+				<a
+					href="https://explorer.solana.com/address/{blogger}?cluster={$selectedNetwork}"
+					target="_blank"
+					>{blogger}
+				</a>
+			</h3>{/if}
+		<h3>
+			Blog ID:
 			<a
-				href="https://explorer.solana.com/address/{blogger}?cluster={$selectedNetwork}"
+				href="https://explorer.solana.com/address/{blogId}?cluster={$selectedNetwork}"
 				target="_blank"
-				>{blogger}
+				>{blogId}
 			</a>
-		</h2>{/if}
-	<h2>
-		Blog ID:
-		<a
-			href="https://explorer.solana.com/address/{blogId}?cluster={$selectedNetwork}"
-			target="_blank"
-			>{blogId}
-		</a>
-	</h2>
-
-	{#if $connected && ownBlog}
+		</h3>
+	</center>
+	{#if $connected && ownsBlog}
 		<div>
 			<MarkdownEditor bind:value />
 
@@ -128,9 +130,9 @@
 				hidden
 			/>
 
-			{#if preview}
+			{#if value && preview}
 				<div class="view" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
-					{@html value && marked(value)}
+					{@html marked(value)}
 				</div>
 			{/if}
 
