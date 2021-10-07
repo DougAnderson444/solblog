@@ -58,7 +58,7 @@ p {
 	/* color: var(--heading-color); */
 }
 
-p {
+p, ul {
 	line-height: 1.5;
 }
 
