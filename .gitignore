@@ -1,8 +1,12 @@
 
 .anchor
 .DS_Store
-target
 **/*.rs.bk
 node_modules
 deploy/*-keypair.json
 deploy/dapp-config.json
+
+# include IDL in git
+!target/
+target/*
+!target/idl
