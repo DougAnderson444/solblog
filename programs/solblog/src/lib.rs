@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use std::str::from_utf8;
 
-declare_id!("5JBjXWwqWHwPK1NRgV8d9XQ87wtGDKTmkv4LPZjfZZxa");
+declare_id!("BLoG9PtBTkhUbGRAYVe8jzd5ji1G2VPkzwbsRV3bnteD");
 
 #[program]
 pub mod solblog {
