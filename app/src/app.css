@@ -9,7 +9,7 @@
 	--secondary-color: #d0dde9;
 	--tertiary-color: #edf0f8;
 	--accent-color: #4caf50;
-	--heading-color: rgba(0, 0, 0, 0.7);
+	--heading-color: rgba(0, 0, 0, 0.8);
 	--text-color: #444444;
 	--background-without-opacity: rgba(255, 255, 255, 0.7);
 	--column-width: 42rem;
@@ -17,6 +17,7 @@
 }
 
 body {
+	color: var(--heading-color);
 	min-height: 100vh;
 	margin: 0;
 	background-color: var(--primary-color);
@@ -53,8 +54,8 @@ body::before {
 h1,
 h2,
 p {
-	font-weight: 400;
-	color: var(--heading-color);
+	/* font-weight: 500; */
+	/* color: var(--heading-color); */
 }
 
 p {
@@ -76,8 +77,8 @@ h1 {
 }
 
 h2 {
-	font-size: 1rem;
-	text-align: center;
+	/* font-size: 1.4rem; */
+	text-align: left;
 }
 
 pre {
