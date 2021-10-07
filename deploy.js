@@ -115,6 +115,7 @@ export function readKeyfile(keypairFile) {
         )
 
         // CLI: solana airdrop --url devnet 1 <recipientaddress>
+        // solana airdrop --url devnet 1 FxfJzcXQVfHhPkudanTRuxCi9bda1XoDockbxYL8Hndm
         let walletLamports = await solana.getAccountBalance(
             Solana.getPublicKey(dappConfig.wallets[0].publicKey)
         )
