@@ -7,6 +7,7 @@
 	let initMDE;
 	let SimpleMDE;
 	let simplemde;
+	let timer;
 
 	const DRAFT_KEY = '_DRAFT_BLOG';
 	const def = null;
@@ -24,6 +25,7 @@
 			while (bytes > 566) {
 				simplemde.value(simplemde.value().slice(0, simplemde.value().length - 2));
 				bytes = Buffer.from(simplemde.value(), 'utf8').length;
+				simplemde.codemirror.doc.setCursor(999, 999); // Move the cursor to the end of the document.
 			}
 			return bytes;
 		};
@@ -53,7 +55,16 @@
 
 		simplemde.codemirror.on('change', function () {
 			value = simplemde.value();
-			ImmortalDB.set(DRAFT_KEY, value); // TODO: typing/wait buffer?
+
+			// save after a brief pause, for more keystrokes
+			if (timer) {
+				clearTimeout(timer); // cancel any exisitng waiting
+			}
+			timer = setTimeout(async () => {
+				timer = 0;
+				// also update store
+				await ImmortalDB.set(DRAFT_KEY, value);
+			}, 900);
 		});
 	});
 </script>
@@ -65,12 +76,11 @@
 
 <style>
 	:global(.CodeMirror, .CodeMirror-scroll) {
-		min-height: 90px;
+		min-height: 90px !important;
 	}
 
-	/* .CodeMirror-scroll  */
 	:global(.CodeMirror-scroll) {
-		padding-bottom: 60px;
+		padding-bottom: 60px !important;
 	}
 
 	:global(.CodeMirror) {
