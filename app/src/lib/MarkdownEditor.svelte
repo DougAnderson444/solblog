@@ -8,7 +8,13 @@
 	let SimpleMDE;
 	let simplemde;
 
+	const DRAFT_KEY = '_DRAFT_BLOG';
+	const def = null;
+
 	onMount(async () => {
+		const { ImmortalDB } = await import('immortal-db');
+		const storedValue = await ImmortalDB.get(DRAFT_KEY, def);
+
 		const SimpleMDEModule = await import('simplemde');
 		SimpleMDE = SimpleMDEModule.default;
 
@@ -38,10 +44,18 @@
 			],
 			initialValue
 		});
+
+		if (storedValue) {
+			console.log('get stored', storedValue);
+			simplemde.value(storedValue);
+		}
+
 		value = simplemde.value();
 
 		simplemde.codemirror.on('change', function () {
 			value = simplemde.value();
+			console.log('Saving', value);
+			ImmortalDB.set(DRAFT_KEY, value).then((v) => console.log(`saved ${v}`)); // TODO: typing buffer?
 		});
 	});
 </script>
