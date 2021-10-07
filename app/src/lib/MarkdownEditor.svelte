@@ -46,7 +46,6 @@
 		});
 
 		if (storedValue) {
-			console.log('get stored', storedValue);
 			simplemde.value(storedValue);
 		}
 
@@ -54,8 +53,7 @@
 
 		simplemde.codemirror.on('change', function () {
 			value = simplemde.value();
-			console.log('Saving', value);
-			ImmortalDB.set(DRAFT_KEY, value).then((v) => console.log(`saved ${v}`)); // TODO: typing buffer?
+			ImmortalDB.set(DRAFT_KEY, value); // TODO: typing/wait buffer?
 		});
 	});
 </script>
