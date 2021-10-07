@@ -1,8 +1,8 @@
 {
 	"name": "@douganderson444/solblog-app",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"scripts": {
-		"dev": "svelte-kit dev --port=3654",
+		"dev3654": "svelte-kit dev --port=3654",
 		"build": "svelte-kit build",
 		"preview": "svelte-kit preview --port=3003",
 		"lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. .",
