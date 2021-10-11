@@ -19,11 +19,11 @@ YouTube video on building the Rust portion:
 
 This tutorial will take you from zero to functional blog.
 
-Building Solana programs in Rust language can be tough. Anytime you want to save or retrieve data from an account, you need to think about packing/unpacking the data, serializing/unserializing the data and formats, a real pain.
+Building Solana programs in Rust language can be tough. Anytime you want to save or retrieve data from an account, you need to think about packing/unpacking the data, serializing/unserializing the data and formats, which are all a real pain.
 
-Anchor abstracts away from the low level construction of accounts, the packing and unpacking, and modifying the interfaces to your Solana program. It does this by bundling the boilerplate pack/unpack into rust macros! This gives the Anchor author a lot of shortcuts and speed to building Solana programs.
+Anchor abstracts away from the low level construction of accounts, the packing and unpacking, and modifying the interfaces to your Solana program. It does this by bundling the boilerplate into rust macros! This gives users of Anchor a lot of shortcuts and speed to building Solana programs.
 
-There are always two parts to a Solana app -- the *on-chain* program and accounts, and the *off-chain* app that interacts with it. The other benefit Anchor brings is the interaction between these two app segments is aligned by using an Interface Definition and Language (IDL). Since the interface of the off-chain app (say, in JavaScript) must always match the on-chain Solana program, this is a really nice convenience feature to have.
+There are always two parts to a Solana app -- the *on-chain* program and accounts, and the *off-chain* app that interacts with it. The other benefit Anchor brings is the alignments of the interaction between these two app segments. This alignment is called an Interface Description Language [(IDL)](https://en.wikipedia.org/wiki/Interface_description_language). Since the interface of the off-chain app (say, in JavaScript) must always match the on-chain Solana program, this is a really nice convenience feature to have.
 
 <div style="background-color: white;"></div>
 
