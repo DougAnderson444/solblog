@@ -8,13 +8,13 @@ const config = {
 	preprocess: preprocess(),
 
 	kit: {
-		adapter: adapter_ipfs({
-			removeBuiltInServiceWorkerRegistration: true,
-			injectPagesInServiceWorker: true
-		}),
-		// adapter: vercelAdapter({
-		// 	outfile: '../build'
+		// adapter: adapter_ipfs({
+		// 	removeBuiltInServiceWorkerRegistration: true,
+		// 	injectPagesInServiceWorker: true
 		// }),
+		adapter: vercelAdapter({
+			outfile: '../build'
+		}),
 		// hydrate the <div id="svelte"> element in src/app.html
 		target: '#svelte',
 		vite: () => ({
