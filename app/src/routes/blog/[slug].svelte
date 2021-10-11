@@ -63,6 +63,7 @@
 			const signature = await $anchorClient.makePost(value, blogId);
 			console.log({ signature });
 			postDetails.unshift({ content: [marked(value)], signature });
+			value = '# New Post';
 			posts = [...postDetails];
 		};
 
@@ -122,13 +123,7 @@
 		<div>
 			<MarkdownEditor bind:value />
 
-			<input
-				name="post"
-				aria-label="Add blog post"
-				placeholder="+ tap to blog on-chain with Solana"
-				bind:value
-				hidden
-			/>
+			<input name="post" aria-label="Add blog post" bind:value hidden />
 
 			{#if value && preview}
 				<div class="view" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
