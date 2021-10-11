@@ -1,7 +1,7 @@
 // import the Anchor library
 import * as anchor from '@project-serum/anchor';
 // Read the generated IDL
-import idl from '$idl/solblog.json';
+import idl from '$lib/idl/solblog.json';
 import { WalletAdaptorPhantom } from '$lib/helpers/wallet-adapter-phantom';
 
 const { SystemProgram } = anchor.web3; // Added to initialize account

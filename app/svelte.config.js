@@ -16,14 +16,15 @@ const config = {
 			outfile: '../build'
 		}),
 		// hydrate the <div id="svelte"> element in src/app.html
-		target: '#svelte',
-		vite: () => ({
-			resolve: {
-				alias: {
-					$idl: path.resolve('./target/idl/')
-				}
-			}
-		})
+		target: '#svelte'
+		// failed attempt to get Vercel to read a directory outside of this root ./app/ folder :/
+		// vite: () => ({
+		// 	resolve: {
+		// 		alias: {
+		// 			$idl: path.resolve('./target/idl/')
+		// 		}
+		// 	}
+		// })
 	}
 };
 
