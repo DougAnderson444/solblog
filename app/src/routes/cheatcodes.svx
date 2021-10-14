@@ -1,0 +1,68 @@
+---
+layout: article
+title: About, Help, & Cheat Codes
+---
+
+## About
+
+This is a decentralized blog, built on Solana. It was submitted during [IGNITION](https://ignition.devpost.com/) along with the [tutorial](https://github.com/DougAnderson444/solblog#solblog) and [video](https://www.youtube.com/watch?v=w-n87Aq3f8k) to help people learn what is possible, and how to code something familiar, on Solana.
+
+---
+
+## Blog Structure:
+
+### Blogger Accounts (blogger)
+
+Bloggers identities are any Ed25519 public keys, like the ones used in Solana. You can have as many blogger accounts as you like -- you just need to create a new public key. See the cheat code below about friendly name blogger accounts. 😉
+
+### Blog Accounts (blogAccounts)
+
+Blog accounts (or blog channels) are for a topic or an audience. Make as many channels as you want under the same Blogger, they are just new accounts in Solana under control of the Blogger's public key.
+
+---
+
+## Cheat codes `10110101`:
+
+### Markdown ⬇️
+
+Check out [markdown](https://simplemde.com/markdown-guide) or get super fancy and hack some sweet [mdsvex](https://mdsvex.com/), maybe from an external source (npm, ipfs, arweave -- dealer's choice).
+
+### Fork & Borrow 🍴
+
+Don't start from scratch. Surf the [gallery](/blog) for work that others have built, and build cool stuff on top of what they've already built.
+
+### Save! 💾
+
+Your drafts are auto [saved](https://github.com/gruns/ImmortalDB) to the browser and published to Solana at your discretion! This is the decentralized internet. Places like [Arweave](https://www.arweave.org/), [IPFS](https://ipfs.io/), can be used as links in your blogs!
+
+- IPFS: Free, but kinda temporary, sometimes
+- Arweave: less than $0.01; >1000 posts for $1
+- Solana: less than $0.01; >1000 posts for $1
+
+There's a Bondifa program to maps
+
+### Twitter underground
+
+Try searching someone's (case-sensitive) [Twitter username](https://naming.bonfida.org/#/twitter-registration), and if they've created a blog channel under that Public Key, it'll show up.
+
+### Wallet & Keys
+
+By default the SolBlog uses the ever popular [Phantom](https://phantom.app/) to connect, but you could pass in a keypair if you like.
+
+You can use the Wallet on DevNet, all it does it sign transactions for you.
+
+### AirDrop
+
+If you've selected DevNet, and your SOL balance is low (or zero) an AirDrop button pops up so you can fund your account. Sorry, no air drop on mainnet 😉
+
+---
+
+## Code & Contributing
+
+### Tutorial 'n Creator Stuff
+
+There's a blog tutorial [on Github](https://github.com/DougAnderson444/solblog) how this was made, and there's [a video](https://www.youtube.com/watch?v=w-n87Aq3f8k) about the anchor side of things (I'm getting to the Svelte front end, "soon")
+
+### Customize UI
+
+Since the backend is on Solana & elsewhere, you don't even _need_ to use this User Interface, you could tweek it into a custom one. Source code pull requests are ok too!
