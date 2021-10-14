@@ -10,7 +10,6 @@
 </script>
 
 <script>
-	import { onMount } from 'svelte';
 	import { scale } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
@@ -22,6 +21,12 @@
 	import { loadAnchorClient } from '$lib/helpers/utils';
 
 	import { selectedNetwork, anchorClient, connected, adapter } from '$lib/stores';
+	import Bio from '$lib/Bio.svelte';
+	import { onMount, setContext } from 'svelte';
+	import { goto, prefetch } from '$app/navigation';
+
+	setContext('DRAFT_KEY', '__DRAFT_BLOG_POST');
+	setContext('INITIAL', `# Blog Title\nGo ahead, make a post! You can use markdown too `);
 
 	// post will have metadata and content
 	export let posts;
@@ -41,6 +46,7 @@
 	let mounted;
 	let postDetails;
 	let ownsBlog;
+	let mde;
 
 	$: blogId && showBlogger && showBlogger();
 	$: $connected && blogId && assertOwnsBlog && assertOwnsBlog();
@@ -65,6 +71,7 @@
 			postDetails.unshift({ content: [marked(value)], signature });
 			value = '# New Post';
 			posts = [...postDetails];
+			mde.externalUpdate;
 		};
 
 		assertOwnsBlog = async () => {
@@ -85,6 +92,11 @@
 
 		mounted = true;
 	});
+
+	const handleClear = () => {
+		console.log('hanlding clear', { mde });
+		mde.externalUpdate;
+	};
 </script>
 
 <svelte:head>
@@ -104,11 +116,7 @@
 		{#if blogger}
 			<h3>
 				Blogger:
-				<a
-					href="https://explorer.solana.com/address/{blogger}?cluster={$selectedNetwork}"
-					target="_blank"
-					>{blogger}
-				</a>
+				<a href="../blogger/{blogger}" sveltekit:prefetch>{blogger} </a>
 			</h3>{/if}
 		<h3>
 			Blog ID:
@@ -118,15 +126,16 @@
 				>{blogId}
 			</a>
 		</h3>
+		<Bio {blogId} />
 	</center>
 	{#if $connected && ownsBlog}
-		<div>
-			<MarkdownEditor bind:value />
+		<div transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
+			<MarkdownEditor bind:value bind:this={mde} />
 
 			<input name="post" aria-label="Add blog post" bind:value hidden />
 
 			{#if value && preview}
-				<div class="view" transition:slide={{ delay: 100, duration: 400, easing: quintOut }}>
+				<div class="view" transition:slide={{ delay: 100, duration: 700, easing: quintOut }}>
 					{@html marked(value)}
 				</div>
 			{/if}
@@ -135,7 +144,7 @@
 				<label for="preview">
 					<input type="checkbox" bind:checked={preview} /> Preview Final
 				</label>
-
+				<button on:click|preventDefault={mde.externalUpdate}>Clear</button>
 				<button on:click|preventDefault={handleSubmitPost}>Post</button>
 			</div>
 		</div>
