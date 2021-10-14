@@ -46,12 +46,12 @@ export default class AnchorClient {
 		this.program = new anchor.Program(idl, this.programId, this.provider); // just set a while new program
 	}
 
-	async initialize() {
+	async initialize(bio) {
 		// generate an address (PublciKey) for this new account
 		let blogAccount = anchor.web3.Keypair.generate(); // blogAccount is type Keypair
-
+		const utf8encoded = Buffer.from(bio);
 		// Execute the RPC call
-		const tx = await this.program.rpc.initialize({
+		const tx = await this.program.rpc.initialize(utf8encoded, {
 			// Pass in all the accounts needed
 			accounts: {
 				blogAccount: blogAccount.publicKey, // publickey for our new account
@@ -98,9 +98,16 @@ export default class AnchorClient {
 		return utf8decoder.decode(account.latestPost);
 	}
 
-	getBlogAuthority = async (blogid) => {
+	// never really used, but a good example of how to use Anchor to read an account
+	async getBio(blogId) {
+		const account = await this.program.account.blogAccount.fetch(new anchor.web3.PublicKey(blogId));
+		console.log(`get account bio:`, { account });
+		return utf8decoder.decode(account.bio);
+	}
+
+	getBlogAuthority = async (blogId) => {
 		let accountInfo = await this.program.account.blogAccount.fetch(
-			new anchor.web3.PublicKey(blogid)
+			new anchor.web3.PublicKey(blogId)
 		);
 		// You could do this, but you've got to parse the buffer data (tpyed array) yourself.... ew.
 		// let accountInfo = await connection.getAccountInfo(new anchor.web3.PublicKey(blogid));
