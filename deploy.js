@@ -173,4 +173,16 @@ export function readKeyfile(keypairFile) {
         JSON.stringify(dappConfig, null, "\t"),
         "utf8"
     )
+
+    // copy the IDL over to the app
+    // destination.txt will be created or overwritten by default.
+    // app/src/lib/idl/${projectName}.json
+    fs.copyFile(
+        `target/idl/${projectName}.json`,
+        `app/src/lib/idl/${projectName}.json`,
+        (err) => {
+            if (err) throw err
+            console.log(`${projectName}.json was copied to ./app`)
+        }
+    )
 })()
