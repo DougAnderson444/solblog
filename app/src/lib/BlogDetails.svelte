@@ -1,6 +1,6 @@
 <script>
 	import Bio from '$lib/Bio.svelte';
-
+	import Wallet from '$lib/Wallet.svelte';
 	export let blogAccounts;
 </script>
 
@@ -14,6 +14,8 @@
 				</li>
 			{/each}
 		</ul>
+	{:else}<b>None SolBlogs found under this Blogger ID.</b><br />
+		<Wallet />
 	{/if}<br />
 {/if}
 
