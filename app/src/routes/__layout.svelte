@@ -3,12 +3,21 @@
 	import '../app.css';
 
 	import { onMount } from 'svelte';
+	import { loadAnchorClient } from '$lib/helpers/utils';
+
+	let loaded;
 
 	onMount(async () => {
 		// setup some globals
 		import('buffer').then((Buffer) => {
 			global.Buffer = Buffer.Buffer;
 		});
+
+		const Buffer = await import('buffer');
+		global.Buffer = Buffer.Buffer;
+
+		await loadAnchorClient();
+		loaded = true;
 	});
 </script>
 
@@ -20,7 +29,11 @@
 <Header />
 
 <main>
-	<slot />
+	{#if loaded}
+		<slot />
+	{:else}
+		Loading...
+	{/if}
 </main>
 
 <footer>
