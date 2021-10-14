@@ -11,7 +11,7 @@
 	setContext('DRAFT_KEY', 'BLOG_BIO');
 	setContext('INITIAL', 'Bio:');
 
-	let blogger;
+	let blogger = '';
 	let mounted;
 	let blogAccounts;
 	let myBlogs;
@@ -63,39 +63,36 @@ Channel syncs info about...
 </header>
 
 <div class="blog">
-	<h1>Load a blogger:</h1>
+	<h2>Search Blogosphere:</h2>
+
 	<input class="new" placeholder="Solana PublicKey or @Twitter Handle" bind:value={blogger} />
 
 	<ListBlogs {blogger} />
 
 	{#if $connected}
-		<p>Your Blogs:</p>
 		{#if myBlogs?.length > 0}
+			<p>Your Blogs:</p>
 			<ul>
 				{#each myBlogs as blog}
 					<li><a href="/blog/{blog}">{blog}</a></li>
 				{/each}
-				<div class="container">
-					<div class="submit">
-						<h2>New Channel?</h2>
-						<div class="view">
-							<MarkdownEditor bind:value={bio} />
-						</div>
-
-						<button on:click={handleCreateBlog}
-							>Create {myBlogs?.length > 0 ? 'Another' : 'New'} Blog</button
-						>
-					</div>
-				</div>
 			</ul>
-		{:else}
-			No blogs. Create one!
 		{/if}
-	{:else}
-		<p>Connect Solana Wallet to Create a Blog</p>
-		<Wallet />
-	{/if}
+		<div class="container">
+			<div class="submit">
+				<h2>New Blog:</h2>
+				<div class="view">
+					<MarkdownEditor bind:value={bio} />
+				</div>
 
+				<button on:click={handleCreateBlog}
+					>Create {myBlogs?.length > 0 ? 'Another' : 'New'} Blog</button
+				>
+			</div>
+		</div>
+	{/if}
+	<br />
+	<h2>Other People's Blogs</h2>
 	<div>Lastest SolBlog Activity:</div>
 	<BlogDetails blogAccounts={newestAccounts} />
 </div>
@@ -144,7 +141,7 @@ Channel syncs info about...
 
 	.corner {
 		width: 100%;
-		height: 4em;
+		height: 100%;
 		margin: auto;
 		text-align: end;
 	}
