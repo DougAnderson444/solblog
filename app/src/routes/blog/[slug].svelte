@@ -184,7 +184,7 @@
 
 	.corner {
 		width: 100%;
-		height: 4em;
+		height: 100%;
 		margin: auto;
 		text-align: end;
 	}

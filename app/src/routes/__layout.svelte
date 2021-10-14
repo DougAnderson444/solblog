@@ -37,11 +37,15 @@
 </main>
 
 <footer>
-	<p>
-		source code: <a href="https://github.com/DougAnderson444/solblog"
+	<center>
+		<p>
+			Submit <a href="https://douganderson444.hellonext.co/b/feedback" target="_blank">Feedback</a>
+		</p>
+		Fork & Contribute at:
+		<a href="https://github.com/DougAnderson444/solblog"
 			>https://github.com/DougAnderson444/solblog</a
-		>
-	</p>
+		><br />
+	</center>
 </footer>
 
 <style>
