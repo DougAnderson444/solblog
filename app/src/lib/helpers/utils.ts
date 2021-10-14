@@ -1,7 +1,6 @@
 import { selectedNetwork, anchorClient } from '$lib/stores';
 import { get } from 'svelte/store';
 import { programId, MAIN_NET, DEV_NET, config } from '$lib/constants';
-import * as anchor from '@project-serum/anchor';
 
 import type { PublicKey } from '$lib/helpers/types'
 import { Connection, PublicKey } from '@solana/web3.js';
