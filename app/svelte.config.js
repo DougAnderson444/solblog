@@ -1,11 +1,21 @@
-import preprocess from 'svelte-preprocess';
+import sveltePreprocess from 'svelte-preprocess';
 import adapter_ipfs from 'sveltejs-adapter-ipfs';
 import vercelAdapter from '@sveltejs/adapter-vercel';
 import path from 'path';
+import { mdsvex } from 'mdsvex';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: preprocess(),
+	extensions: ['.svelte', '.svx', '.md', '.svelte.md'],
+	preprocess: [
+		mdsvex({
+			extensions: ['.svx', '.md', '.svelte.md'],
+			layout: {
+				article: 'src/layouts/article.svelte'
+			}
+		}),
+		sveltePreprocess()
+	],
 
 	kit: {
 		// adapter: adapter_ipfs({
