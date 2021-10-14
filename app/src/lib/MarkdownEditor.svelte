@@ -1,7 +1,9 @@
 <script>
 	import { onMount } from 'svelte';
+	import { getContext } from 'svelte';
+
 	export let value;
-	export let initialValue = `# Blog Title\nGo ahead, make a post!`;
+	export let initialValue = getContext('INITIAL') || `# Blog Title\nGo ahead, make a post!`;
 
 	let markdowneditorelement;
 	let initMDE;
@@ -9,8 +11,13 @@
 	let simplemde;
 	let timer;
 
-	const DRAFT_KEY = '_DRAFT_BLOG';
+	const DRAFT_KEY = getContext('DRAFT_KEY') || '_DRAFT_BLOG';
 	const def = null;
+
+	// reflect externally bound updates, from <MarkdownEditor bind:value />
+	export function externalUpdate() {
+		simplemde.value('# New Post \n');
+	}
 
 	onMount(async () => {
 		const { ImmortalDB } = await import('immortal-db');

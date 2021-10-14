@@ -125,6 +125,8 @@
 		display: inline-block;
 		font-size: 16px;
 		margin-left: auto;
+		margin-top: 0.5em;
+		margin-bottom: 1em;
 		border-radius: 2px;
 		filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.1));
 	}
