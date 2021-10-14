@@ -8,36 +8,44 @@ pub mod solblog {
     use super::*;
     pub fn initialize(
         ctx: Context<Initialize>, // <-- Anchor context that holds all the account data (structs) below
-    ) -> ProgramResult { // <--- These functions are snake_case of the CamelCase struct below
+        new_bio: Vec<u8>,         // <--- our blog post bio
+    ) -> ProgramResult {
+        // <--- These functions are snake_case of the CamelCase struct below
         let b_p_a = &mut ctx.accounts.blog_account; // grab a mutable reference to our BlogAccount struct
         b_p_a.authority = *ctx.accounts.authority.key; // set the BlogAccount.authority to the pubkey of the authority
+        b_p_a.bio = new_bio.to_vec(); // save the latest bio in the account.
+        let bio = from_utf8(&new_bio) // convert the array of bytes into a string slice
+            .map_err(|err| {
+                msg!("Invalid UTF-8, from byte {}", err.valid_up_to());
+                ProgramError::InvalidInstructionData
+            })?;
+        msg!(bio);
         Ok(()) // return the Result
     }
 
     pub fn make_post(
-        ctx: Context<MutateAccount>, 
-        new_post: Vec<u8> // <--- our blog post data
+        ctx: Context<MutateAccount>,
+        new_post: Vec<u8>, // <--- our blog post data
     ) -> ProgramResult {
         let post = from_utf8(&new_post) // convert the array of bytes into a string slice
             .map_err(|err| {
-            msg!("Invalid UTF-8, from byte {}", err.valid_up_to());
-            ProgramError::InvalidInstructionData
-        })?;
+                msg!("Invalid UTF-8, from byte {}", err.valid_up_to());
+                ProgramError::InvalidInstructionData
+            })?;
         msg!(post); // msg!() is a Solana macro that prints string slices to the program log, which we can grab from the transaction block data
 
         let b_acc = &mut ctx.accounts.blog_account;
-        b_acc.latest_post = new_post; // save the latest post in the account. 
-        // past posts will be saved in transaction logs 
-        
-        Ok(())// return ok result
+        b_acc.latest_post = new_post; // save the latest post in the account.
+                                      // past posts will be saved in transaction logs
+
+        Ok(()) // return ok result
     }
-    
     pub fn update_bio(
-        ctx: Context<MutateAccount>, 
-        new_bio: Vec<u8> // <--- our blog post data
+        ctx: Context<MutateAccount>,
+        new_bio: Vec<u8>, // <--- our blog post bio
     ) -> ProgramResult {
         let b_acc = &mut ctx.accounts.blog_account;
-        b_acc.bio = new_bio; // save the latest bio in the account. 
+        b_acc.bio = new_bio; // save the latest bio in the account.
         Ok(()) // return ok result
     }
 }
@@ -71,12 +79,12 @@ pub struct MutateAccount<'info> {
     // ensures the poster has the keys
     // has to come after the Account statement above
     // no mut this time, because we don't change authority when we post
-    pub authority: Signer<'info> 
+    pub authority: Signer<'info>,
 }
 
 #[account]
-pub struct BlogAccount { 
+pub struct BlogAccount {
     pub authority: Pubkey,    // save the posting authority to this authority field
     pub latest_post: Vec<u8>, // <-- where the latest blog post will be stored
-    pub bio: Vec<u8>
+    pub bio: Vec<u8>,
 }

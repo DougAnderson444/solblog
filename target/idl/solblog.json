@@ -21,7 +21,12 @@
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "newBio",
+          "type": "bytes"
+        }
+      ]
     },
     {
       "name": "makePost",
@@ -87,8 +92,5 @@
         ]
       }
     }
-  ],
-  "metadata": {
-    "address": "BLoG9PtBTkhUbGRAYVe8jzd5ji1G2VPkzwbsRV3bnteD"
-  }
+  ]
 }
