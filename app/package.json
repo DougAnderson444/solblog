@@ -1,6 +1,6 @@
 {
 	"name": "@douganderson444/solblog-app",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"scripts": {
 		"dev3654": "svelte-kit dev --port=3654",
 		"build": "svelte-kit build",
