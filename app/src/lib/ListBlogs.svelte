@@ -12,12 +12,17 @@
 
 		if (blogger.length < 44) {
 			// TODO: check naming service
-			// const { getTwitterRegistry } = await import('$lib/helpers/utils'); // https://github.com/solana-labs/solana-program-library/blob/3e945798fc70e111b131622c1185385c222610fd/name-service/js/src/twitter.ts#L217
-			// blogger = await getTwitterRegistry(blogger);
+			console.log('Checking Twitter name', blogger);
+			const { getTwitterRegistry } = await import('$lib/helpers/utils'); // https://github.com/solana-labs/solana-program-library/blob/3e945798fc70e111b131622c1185385c222610fd/name-service/js/src/twitter.ts#L217
+			const result = await getTwitterRegistry(blogger);
+			if (!result) return;
+			blogger = result;
+			console.log('Twitter points to ', blogger);
 		}
 
 		// todo: check if valid
 		blogAccounts = await $anchorClient.getBlogAccounts(blogger);
+		console.log({ blogAccounts });
 	};
 
 	$: blogger && $anchorClient && showBloggerAccounts();
