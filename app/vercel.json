@@ -5,7 +5,7 @@
 			"has": [
 				{
 					"type": "host",
-					"value": "(?<bloggerID>.)syncs.info"
+					"value": "(?<bloggerID>.*)"
 				}
 			],
 			"destination": "/blogger/:bloggerID/:path*"
