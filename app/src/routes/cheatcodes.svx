@@ -55,8 +55,6 @@ Your drafts are auto [saved](https://github.com/gruns/ImmortalDB) to the browser
 - Arweave: less than $0.01; >1000 posts for $1
 - Solana: less than $0.01; >1000 posts for $1
 
-There's a Bondifa program to maps
-
 ### Crypto Twitter, Underground
 
 Try searching someone's (case-sensitive) [Twitter username](https://naming.bonfida.org/#/twitter-registration), and if they've created a blog channel under that Public Key, it'll show up.
