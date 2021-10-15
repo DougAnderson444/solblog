@@ -19,6 +19,20 @@ Bloggers identities are any Ed25519 public keys, like the ones used in Solana. Y
 
 Blog accounts (or blog channels) are for a topic or an audience. Make as many channels as you want under the same Blogger, they are just new accounts in Solana under control of the Blogger's public key.
 
+### Blog Links
+
+Your blog is at:
+
+`https://syncs.info/blog/YourBlogIdPublicKeyHere`
+
+All your blogs listed at:
+
+`https://syncs.info/blogger/YourBloggerPublicKeyHere`
+
+List all your blogs using your Twitter handle, if [registered](https://naming.bonfida.org/#/twitter-registration):
+
+`https://syncs.info/blogger/DougAnderson444`
+
 ---
 
 ## Cheat codes `10110101`:
@@ -41,7 +55,7 @@ Your drafts are auto [saved](https://github.com/gruns/ImmortalDB) to the browser
 
 There's a Bondifa program to maps
 
-### Twitter underground
+### Crypto Twitter, Underground
 
 Try searching someone's (case-sensitive) [Twitter username](https://naming.bonfida.org/#/twitter-registration), and if they've created a blog channel under that Public Key, it'll show up.
 
@@ -66,3 +80,7 @@ There's a blog tutorial [on Github](https://github.com/DougAnderson444/solblog) 
 ### Customize UI
 
 Since the backend is on Solana & elsewhere, you don't even _need_ to use this User Interface, you could tweek it into a custom one. Source code pull requests are ok too!
+
+### Docs
+
+This document is written in markdown, so if you would like to submit a pull request, please write it in markdown :)
