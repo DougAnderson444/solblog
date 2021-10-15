@@ -6,8 +6,7 @@ import type { PublicKey } from '$lib/helpers/types';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 import { HASH_PREFIX, NAME_PROGRAM_ID, TWITTER_ROOT_PARENT_REGISTRY_KEY } from '$lib/constants';
-import { hash } from '@stablelib/sha256';
-import { sha256 } from 'hash.js';
+import * as hash from 'hash.js';
 import { deserializeUnchecked, Schema } from 'borsh';
 
 export const loadAnchorClient = async ({ keypair } = {}) => {
@@ -42,7 +41,7 @@ export async function getTwitterRegistry(twitter_handle: string): Promise<NameRe
 
 function getHashedName(name: string): Uint8Array {
 	const input = HASH_PREFIX + name;
-	return sha256().update(input).digest('hex');
+	return hash.sha256().update(input).digest('hex');
 }
 
 // adapted from https://github.com/solana-labs/solana-program-library/blob/3e945798fc70e111b131622c1185385c222610fd/name-service/js/src/utils.ts#L101
